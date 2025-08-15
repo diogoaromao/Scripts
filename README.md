@@ -4,7 +4,7 @@ A collection of utility scripts for infrastructure automation and deployment.
 
 ## Proxmox LXC Container Setup
 
-### `create-lxc-docker-portainer.sh`
+### `scripts/proxmox/create-lxc-docker-portainer.sh`
 
 Automated script for creating Proxmox LXC containers with Docker and Portainer pre-installed. Designed for hosting .NET Web API applications in staging and production environments.
 
@@ -21,10 +21,10 @@ Automated script for creating Proxmox LXC containers with Docker and Portainer p
 **Option 1: Run directly from GitHub**
 ```bash
 # Download and run in one command
-curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -e staging -p myapi
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -e staging -p myapi
 
 # Or download, review, and execute
-wget https://raw.githubusercontent.com/diogoaromao/Scripts/main/create-lxc-docker-portainer.sh
+wget https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh
 chmod +x create-lxc-docker-portainer.sh
 ./create-lxc-docker-portainer.sh -n myapi-staging -e staging -p myapi
 ```
@@ -32,13 +32,13 @@ chmod +x create-lxc-docker-portainer.sh
 **Option 2: Local usage**
 ```bash
 # Make executable
-chmod +x create-lxc-docker-portainer.sh
+chmod +x scripts/proxmox/create-lxc-docker-portainer.sh
 
-# Basic usage
-./create-lxc-docker-portainer.sh -n myapi-staging -e staging -p myapi
+# Staging environment
+./scripts/proxmox/create-lxc-docker-portainer.sh -n myapi-staging -e staging -p myapi
 
-# Production environment with more resources
-./create-lxc-docker-portainer.sh -n myapi-prod -e production -p myapi -m 4096 -c 4 -d 16G
+# Production environment
+./scripts/proxmox/create-lxc-docker-portainer.sh -n myapi-prod -e production -p myapi
 ```
 
 **Parameters:**
