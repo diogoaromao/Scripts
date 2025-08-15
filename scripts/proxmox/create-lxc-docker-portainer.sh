@@ -216,7 +216,7 @@ pct create $CONTAINER_ID $TEMPLATE_STORAGE:vztmpl/$TEMPLATE \
     --hostname "$HOSTNAME" \
     --memory $MEMORY \
     --cores $CORES \
-    --rootfs $CONTAINER_STORAGE:$DISK \
+    --rootfs $CONTAINER_STORAGE:8 \
     --net0 "$NET_CONFIG" \
     --unprivileged 1 \
     --features nesting=1 \
