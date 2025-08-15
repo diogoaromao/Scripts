@@ -72,14 +72,10 @@ get_next_id() {
     local start_id=${1:-100}
     local id=$start_id
     
-    print_status "Checking for available container ID starting from $start_id..."
-    
     while pct status $id >/dev/null 2>&1; do
-        print_status "Container ID $id already exists, checking next..."
         ((id++))
     done
     
-    print_status "Found available container ID: $id"
     echo $id
 }
 
@@ -209,11 +205,11 @@ fi
 # Create the LXC container
 print_status "Creating LXC container..."
 pct create $CONTAINER_ID $STORAGE:vztmpl/$TEMPLATE \
-    --hostname $HOSTNAME \
+    --hostname "$HOSTNAME" \
     --memory $MEMORY \
     --cores $CORES \
     --rootfs $STORAGE:$DISK \
-    --net0 $NET_CONFIG \
+    --net0 "$NET_CONFIG" \
     --unprivileged 1 \
     --features nesting=1 \
     --onboot 1 \
