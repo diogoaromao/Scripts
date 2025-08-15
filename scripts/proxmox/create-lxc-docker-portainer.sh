@@ -7,7 +7,8 @@ set -e
 
 # Default values
 DEFAULT_TEMPLATE="ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
-DEFAULT_STORAGE="local"
+DEFAULT_TEMPLATE_STORAGE="local"
+DEFAULT_CONTAINER_STORAGE="local-lvm"
 DEFAULT_MEMORY=2048
 DEFAULT_CORES=2
 DEFAULT_DISK="8G"
@@ -87,7 +88,8 @@ ENVIRONMENT=""
 PROJECT=""
 CONTAINER_ID=""
 TEMPLATE="$DEFAULT_TEMPLATE"
-STORAGE="$DEFAULT_STORAGE"
+TEMPLATE_STORAGE="$DEFAULT_TEMPLATE_STORAGE"
+CONTAINER_STORAGE="$DEFAULT_CONTAINER_STORAGE"
 MEMORY="$DEFAULT_MEMORY"
 CORES="$DEFAULT_CORES"
 DISK="$DEFAULT_DISK"
@@ -116,7 +118,11 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -s|--storage)
-            STORAGE="$2"
+            CONTAINER_STORAGE="$2"
+            shift 2
+            ;;
+        --template-storage)
+            TEMPLATE_STORAGE="$2"
             shift 2
             ;;
         -m|--memory)
@@ -188,28 +194,29 @@ echo "  Container ID: $CONTAINER_ID"
 echo "  Name: $CONTAINER_NAME"
 echo "  Hostname: $HOSTNAME"
 echo "  Template: $TEMPLATE"
-echo "  Storage: $STORAGE"
+echo "  Template Storage: $TEMPLATE_STORAGE"
+echo "  Container Storage: $CONTAINER_STORAGE"
 echo "  Memory: ${MEMORY}MB"
 echo "  CPU Cores: $CORES"
 echo "  Disk: $DISK"
 echo "  Network: $NET_CONFIG"
 
 # Check if template exists
-if ! pveam list $STORAGE | grep -q "$TEMPLATE"; then
-    print_warning "Template $TEMPLATE not found in $STORAGE"
+if ! pveam list $TEMPLATE_STORAGE | grep -q "$TEMPLATE"; then
+    print_warning "Template $TEMPLATE not found in $TEMPLATE_STORAGE"
     print_status "Available templates:"
-    pveam list $STORAGE
+    pveam list $TEMPLATE_STORAGE
     print_error "Please download the template or specify a different one"
     exit 1
 fi
 
 # Create the LXC container
 print_status "Creating LXC container..."
-pct create $CONTAINER_ID $STORAGE:vztmpl/$TEMPLATE \
+pct create $CONTAINER_ID $TEMPLATE_STORAGE:vztmpl/$TEMPLATE \
     --hostname "$HOSTNAME" \
     --memory $MEMORY \
     --cores $CORES \
-    --rootfs $STORAGE:$DISK \
+    --rootfs $CONTAINER_STORAGE:$DISK \
     --net0 "$NET_CONFIG" \
     --unprivileged 1 \
     --features nesting=1 \
