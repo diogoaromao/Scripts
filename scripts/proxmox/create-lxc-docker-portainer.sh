@@ -200,6 +200,10 @@ EOF
 # Get container IP
 CONTAINER_IP=$(pct exec $CONTAINER_ID -- hostname -I | awk '{print $1}')
 
+# Prompt to set root password
+print_status "Setting root password for container..."
+pct exec $CONTAINER_ID -- passwd root
+
 print_success "LXC container setup completed successfully!"
 echo ""
 echo "Container Details:"
