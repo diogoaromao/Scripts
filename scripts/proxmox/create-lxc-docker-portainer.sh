@@ -7,7 +7,7 @@ set -e
 
 # Default values
 DEFAULT_TEMPLATE="ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
-DEFAULT_STORAGE="local-lvm"
+DEFAULT_STORAGE="local"
 DEFAULT_MEMORY=2048
 DEFAULT_CORES=2
 DEFAULT_DISK="8G"
@@ -72,10 +72,14 @@ get_next_id() {
     local start_id=${1:-100}
     local id=$start_id
     
+    print_status "Checking for available container ID starting from $start_id..."
+    
     while pct status $id >/dev/null 2>&1; do
+        print_status "Container ID $id already exists, checking next..."
         ((id++))
     done
     
+    print_status "Found available container ID: $id"
     echo $id
 }
 
