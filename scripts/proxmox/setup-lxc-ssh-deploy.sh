@@ -76,23 +76,58 @@ pct exec $CONTAINER_ID -- bash -c "
 # Get container IP
 CONTAINER_IP=$(pct exec $CONTAINER_ID -- hostname -I | awk '{print $1}')
 
+# Generate SSH key pair
+print_status "Generating SSH key pair..."
+SSH_KEY_PATH="$HOME/.ssh/portainer_deploy"
+
+# Create .ssh directory if it doesn't exist
+mkdir -p "$HOME/.ssh"
+chmod 700 "$HOME/.ssh"
+
+# Generate SSH key pair (non-interactive)
+if [[ ! -f "$SSH_KEY_PATH" ]]; then
+    ssh-keygen -t ed25519 -f "$SSH_KEY_PATH" -C "github-actions-deployment" -N ""
+    print_success "SSH key pair generated at $SSH_KEY_PATH"
+else
+    print_status "SSH key pair already exists at $SSH_KEY_PATH"
+fi
+
+# Add public key to container
+print_status "Adding public key to container..."
+if [[ -f "$SSH_KEY_PATH.pub" ]]; then
+    cat "$SSH_KEY_PATH.pub" | pct exec $CONTAINER_ID -- tee -a /home/deploy/.ssh/authorized_keys > /dev/null
+    print_success "Public key added to container"
+else
+    print_error "Public key file not found: $SSH_KEY_PATH.pub"
+    exit 1
+fi
+
+# Wait a moment for SSH service to be ready
+sleep 3
+
+# Test SSH connection
+print_status "Testing SSH connection..."
+if ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -o ConnectTimeout=10 deploy@$CONTAINER_IP "echo 'SSH connection successful'" > /dev/null 2>&1; then
+    print_success "SSH connection test passed"
+else
+    print_error "SSH connection test failed"
+    echo "You may need to wait a moment and test manually:"
+    echo "ssh -i $SSH_KEY_PATH deploy@$CONTAINER_IP"
+fi
+
 print_success "SSH and deploy user setup completed successfully!"
 echo ""
 echo "Container Details:"
 echo "  ID: $CONTAINER_ID"
 echo "  IP Address: $CONTAINER_IP"
 echo "  Deploy User: deploy"
+echo "  SSH Key: $SSH_KEY_PATH"
 echo ""
-echo "Next Steps:"
-echo "  1. Generate SSH key pair on your local machine:"
-echo "     ssh-keygen -t ed25519 -f ~/.ssh/portainer_deploy -C \"github-actions-deployment\""
+echo "For GitHub Actions setup:"
+echo "  1. Copy the private key content:"
+echo "     cat $SSH_KEY_PATH"
 echo ""
-echo "  2. Add the public key to the container:"
-echo "     cat ~/.ssh/portainer_deploy.pub | pct exec $CONTAINER_ID -- tee -a /home/deploy/.ssh/authorized_keys"
-echo ""
-echo "  3. Test SSH connection:"
-echo "     ssh -i ~/.ssh/portainer_deploy deploy@$CONTAINER_IP"
-echo ""
-echo "  4. Add the private key to your GitHub repository secrets as SSH_PRIVATE_KEY"
+echo "  2. Add it to your GitHub repository secrets as SSH_PRIVATE_KEY"
+echo "     (Copy the ENTIRE output including -----BEGIN and -----END lines)"
 echo ""
 echo "SSH Setup Complete!"

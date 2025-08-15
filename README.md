@@ -22,11 +22,14 @@ Secondary script for setting up SSH access and deploy user for GitHub Actions CI
 
 **Features (SSH Setup Script):**
 - Creates dedicated `deploy` user with Docker access for CI/CD
-- Sets up SSH access for GitHub Actions deployment
-- Configures SSH server for key-based authentication
+- Generates SSH key pair automatically
+- Adds public key to container and configures SSH server
+- Tests SSH connection to verify setup
 - Sets proper permissions for deployment directories
 
 **Usage:**
+
+**Option 1: Local Usage**
 
 **Step 1: Create LXC Container**
 ```bash
@@ -49,6 +52,28 @@ chmod +x scripts/proxmox/setup-lxc-ssh-deploy.sh
 ./scripts/proxmox/setup-lxc-ssh-deploy.sh -i <CONTAINER_ID>
 ```
 
+**Option 2: Run Directly from GitHub**
+
+**Step 1: Create LXC Container**
+```bash
+# Download and run in one command (replace myapi-staging and myapi with your values)
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -p myapi
+
+# Alternative: Download, review, and execute
+wget https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh
+chmod +x create-lxc-docker-portainer.sh
+./create-lxc-docker-portainer.sh -n myapi-staging -p myapi
+
+# Set root password when prompted in the next steps
+pct exec <CONTAINER_ID> -- passwd root
+```
+
+**Step 2: Set Up SSH Access (After setting root password)**
+```bash
+# Download and run SSH setup script
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/setup-lxc-ssh-deploy.sh | bash -s -- -i <CONTAINER_ID>
+```
+
 **Parameters:**
 
 *Main Script:*
@@ -69,7 +94,9 @@ chmod +x scripts/proxmox/setup-lxc-ssh-deploy.sh
 
 *SSH Setup Script:*
 - `deploy` user with Docker access and SSH setup
+- SSH key pair generated at `~/.ssh/portainer_deploy`
 - SSH server configured for key-based authentication
+- SSH connection tested and verified
 - Proper ownership of deployment directories
 
 **Requirements:**
@@ -96,30 +123,17 @@ passwd root
 
 **Setting Up GitHub Actions Deployment:**
 
-The SSH setup script will guide you through this process, but here are the manual steps:
+After running the SSH setup script, you only need to:
 
-1. Generate SSH key pair on your local machine:
+1. Get the private key content:
 ```bash
-ssh-keygen -t ed25519 -f ~/.ssh/portainer_deploy -C "github-actions-deployment"
+cat ~/.ssh/portainer_deploy
 ```
 
-2. Add the public key to the container:
-```bash
-# Replace 100 with your container ID
-cat ~/.ssh/portainer_deploy.pub | pct exec 100 -- tee -a /home/deploy/.ssh/authorized_keys
-```
+2. Copy the entire output (including `-----BEGIN` and `-----END` lines) and add it to your GitHub repository secrets as `SSH_PRIVATE_KEY`
 
-3. Test SSH connection:
-```bash
-# Replace IP_ADDRESS with your container's IP
-ssh -i ~/.ssh/portainer_deploy deploy@IP_ADDRESS
-```
+The SSH setup script automatically handles:
+- SSH key pair generation
+- Adding public key to the container
+- Testing the SSH connection
 
-4. Add the private key to your GitHub repository secrets as `SSH_PRIVATE_KEY`
-
-**Getting Portainer Admin Password:**
-The script generates a secure admin password for Portainer:
-```bash
-# Replace 100 with your container ID
-pct exec 100 -- cat /root/portainer_admin_password.txt
-```
