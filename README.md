@@ -123,14 +123,23 @@ passwd root
 
 **Setting Up GitHub Actions Deployment:**
 
-After running the SSH setup script, you only need to:
+After running the SSH setup script, add these secrets to your GitHub repository:
 
+**Required for SSH deployment:**
 1. Get the private key content:
 ```bash
 cat ~/.ssh/portainer_deploy
 ```
 
-2. Copy the entire output (including `-----BEGIN` and `-----END` lines) and add it to your GitHub repository secrets as `SSH_PRIVATE_KEY`
+2. Add to GitHub repository secrets:
+- **PORTAINER_SSH_KEY**: Copy the entire output from step 1 (including `-----BEGIN` and `-----END` lines)
+- **PORTAINER_HOST**: Container IP address or your cloudflared tunnel hostname
+- **PORTAINER_SSH_USER**: `deploy`
+
+**Optional for Portainer API access:**
+- **PORTAINER_URL**: `http://your-container-ip:9000`
+- **PORTAINER_USERNAME**: Your Portainer admin username
+- **PORTAINER_PASSWORD**: Your Portainer admin password
 
 The SSH setup script automatically handles:
 - SSH key pair generation
