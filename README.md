@@ -17,6 +17,19 @@ Automated script for creating Proxmox LXC containers with Docker and Portainer p
 - Provides Docker Compose template for .NET APIs
 
 **Usage:**
+
+**Option 1: Run directly from GitHub**
+```bash
+# Download and run in one command
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -e staging -p myapi
+
+# Or download, review, and execute
+wget https://raw.githubusercontent.com/diogoaromao/Scripts/main/create-lxc-docker-portainer.sh
+chmod +x create-lxc-docker-portainer.sh
+./create-lxc-docker-portainer.sh -n myapi-staging -e staging -p myapi
+```
+
+**Option 2: Local usage**
 ```bash
 # Make executable
 chmod +x create-lxc-docker-portainer.sh
