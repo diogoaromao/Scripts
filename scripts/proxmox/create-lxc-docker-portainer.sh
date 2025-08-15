@@ -72,12 +72,11 @@ get_next_id() {
     local start_id=${1:-100}
     local id=$start_id
     
-    while pct status $id >/dev/null 2>&1; do
-        echo "DEBUG: Container $id exists, trying next..." >&2
+    # Check both VMs (qm) and containers (pct) to ensure ID is truly available
+    while qm status $id >/dev/null 2>&1 || pct status $id >/dev/null 2>&1; do
         ((id++))
     done
     
-    echo "DEBUG: Found available ID: $id" >&2
     echo $id
 }
 
@@ -165,9 +164,9 @@ if [[ -z "$CONTAINER_ID" ]]; then
     CONTAINER_ID=$(get_next_id 100)
     print_status "Auto-assigned container ID: $CONTAINER_ID"
 else
-    # Check if ID is already in use
-    if pct status $CONTAINER_ID >/dev/null 2>&1; then
-        print_error "Container ID $CONTAINER_ID is already in use"
+    # Check if ID is already in use by VM or container
+    if qm status $CONTAINER_ID >/dev/null 2>&1 || pct status $CONTAINER_ID >/dev/null 2>&1; then
+        print_error "ID $CONTAINER_ID is already in use by a VM or container"
         exit 1
     fi
 fi
