@@ -47,11 +47,7 @@ CONTAINER_ID=$(get_next_id)
 print_status "Auto-assigned container ID: $CONTAINER_ID"
 
 # Set hostname
-if [[ -n "$PROJECT" ]]; then
-    HOSTNAME="$PROJECT"
-else
-    HOSTNAME="$CONTAINER_NAME"
-fi
+HOSTNAME="$CONTAINER_NAME"
 
 # Configuration
 TEMPLATE="ubuntu-22.04-standard_22.04-1_amd64.tar.zst"
