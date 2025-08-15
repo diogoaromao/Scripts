@@ -66,7 +66,13 @@ chmod +x scripts/proxmox/create-lxc-docker-portainer.sh
 - Sufficient resources on the Proxmox host
 
 **Setting Root Password:**
-After the container is created, you can set the root password:
+The script will automatically prompt you to set the root password during setup. You'll enter the container shell where you should run:
+```bash
+passwd root
+```
+Then type `exit` to return to the host.
+
+You can also set the password manually later:
 ```bash
 # Replace 100 with your container ID
 pct set 100 --password
