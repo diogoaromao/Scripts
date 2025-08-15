@@ -64,3 +64,24 @@ chmod +x scripts/proxmox/create-lxc-docker-portainer.sh
 - Proxmox VE host
 - Ubuntu 22.04 LXC template available
 - Sufficient resources on the Proxmox host
+
+**Setting Root Password:**
+After the container is created, you can set the root password:
+```bash
+# Replace 100 with your container ID
+pct set 100 --password
+
+# Or change password directly
+pct exec 100 -- passwd root
+
+# Or enter the container and change password manually
+pct enter 100
+passwd root
+```
+
+**Getting Portainer Admin Password:**
+The script generates a secure admin password for Portainer:
+```bash
+# Replace 100 with your container ID
+pct exec 100 -- cat /root/portainer_admin_password.txt
+```
