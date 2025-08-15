@@ -211,7 +211,7 @@ read -p ""
 
 pct enter $CONTAINER_ID
 
-print_success "LXC container setup completed successfully!"
+echo -e "${GREEN}[SUCCESS]${NC} LXC container setup completed successfully!"
 echo ""
 echo "Container Details:"
 echo "  ID: $CONTAINER_ID"
