@@ -141,11 +141,26 @@ EOF
     docker-compose up -d
 "
 
-# Create deployment directories
-print_status "Creating deployment directories..."
+# Create deployment directories and user
+print_status "Creating deployment directories and user..."
 pct exec $CONTAINER_ID -- bash -c "
+    # Create deployment directories
     mkdir -p /opt/deployments/{staging,production}
     chmod 755 /opt/deployments/{staging,production}
+    
+    # Create deploy user for CI/CD
+    useradd -m -s /bin/bash deploy
+    usermod -aG docker deploy
+    
+    # Set up SSH directory for deploy user
+    mkdir -p /home/deploy/.ssh
+    chmod 700 /home/deploy/.ssh
+    touch /home/deploy/.ssh/authorized_keys
+    chmod 600 /home/deploy/.ssh/authorized_keys
+    chown -R deploy:deploy /home/deploy/.ssh
+    
+    # Set deployment directory ownership
+    chown -R deploy:deploy /opt/deployments
     
     # Create sample docker-compose template for .NET APIs
     cat > /opt/deployments/docker-compose.template.yml << 'EOF'
@@ -171,6 +186,9 @@ networks:
   api-network:
     driver: bridge
 EOF
+    
+    # Set ownership of template file
+    chown deploy:deploy /opt/deployments/docker-compose.template.yml
 "
 
 # Create systemd service for Portainer
@@ -225,7 +243,10 @@ echo "  1. Set root password: pct exec $CONTAINER_ID -- passwd root"
 echo "  2. Access Portainer at http://$CONTAINER_IP:9000"
 echo "  3. Setup admin password or use generated one:"
 echo "     pct exec $CONTAINER_ID -- cat /root/portainer_admin_password.txt"
-echo "  4. Use /opt/deployments/staging and /opt/deployments/production for your .NET APIs"
+echo "  4. Set up SSH access for GitHub Actions deployment:"
+echo "     - Generate SSH key: ssh-keygen -t ed25519 -f ~/.ssh/portainer_deploy -C \"github-actions-deployment\""
+echo "     - Add public key to container: cat ~/.ssh/portainer_deploy.pub | pct exec $CONTAINER_ID -- tee -a /home/deploy/.ssh/authorized_keys"
+echo "  5. Use /opt/deployments/staging and /opt/deployments/production for your .NET APIs"
 echo ""
 echo "Deployment directories created:"
 echo "  - /opt/deployments/staging"
