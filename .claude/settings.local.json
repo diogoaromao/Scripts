@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(rm:*)",
+      "Bash(mv:*)"
+    ],
     "defaultMode": "acceptEdits"
   }
 }

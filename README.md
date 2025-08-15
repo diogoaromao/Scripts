@@ -21,12 +21,12 @@ Automated script for creating Proxmox LXC containers with Docker and Portainer p
 **Option 1: Run directly from GitHub**
 ```bash
 # Download and run in one command
-curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -e staging -p myapi
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh | bash -s -- -n myapi-staging -p myapi
 
 # Or download, review, and execute
 wget https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/create-lxc-docker-portainer.sh
 chmod +x create-lxc-docker-portainer.sh
-./create-lxc-docker-portainer.sh -n myapi-staging -e staging -p myapi
+./create-lxc-docker-portainer.sh -n myapi-staging -p myapi
 ```
 
 **Option 2: Local usage**
