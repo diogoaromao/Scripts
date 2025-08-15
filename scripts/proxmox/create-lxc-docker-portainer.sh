@@ -73,9 +73,11 @@ get_next_id() {
     local id=$start_id
     
     while pct status $id >/dev/null 2>&1; do
+        echo "DEBUG: Container $id exists, trying next..." >&2
         ((id++))
     done
     
+    echo "DEBUG: Found available ID: $id" >&2
     echo $id
 }
 
