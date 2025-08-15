@@ -50,7 +50,7 @@ chmod +x scripts/proxmox/create-lxc-docker-portainer.sh
 - `-c, --cores`: CPU cores (default: 2)
 - `-d, --disk`: Disk size (default: 8G)
 - `-t, --template`: Container template (default: ubuntu-22.04-standard)
-- `-s, --storage`: Storage location (default: local-lvm)
+- `-s, --storage`: Storage location (default: local)
 - `-b, --bridge`: Network bridge (default: vmbr0)
 
 **What it creates:**
