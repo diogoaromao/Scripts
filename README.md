@@ -8,24 +8,13 @@ A collection of utility scripts for infrastructure automation and deployment.
 
 Automated script for creating Proxmox LXC containers with Docker and Portainer pre-installed. Designed for hosting .NET Web API applications in staging and production environments.
 
-### `scripts/proxmox/setup-lxc-ssh-deploy.sh`
-
-Secondary script for setting up SSH access and deploy user for GitHub Actions CI/CD. Run this after the main script and setting the root password.
-
-**Features (Main Script):**
+**Features:**
 - Auto-assigns lowest available container ID (starting from 100)
 - Installs Docker CE and Docker Compose
 - Sets up Portainer with auto-generated admin password
 - Creates organized deployment directories for staging/production
 - Includes systemd services for auto-start
 - Provides Docker Compose template for .NET APIs
-
-**Features (SSH Setup Script):**
-- Creates dedicated `deploy` user with Docker access for CI/CD
-- Generates SSH key pair automatically
-- Adds public key to container and configures SSH server
-- Tests SSH connection to verify setup
-- Sets proper permissions for deployment directories
 
 **Usage:**
 
@@ -43,14 +32,6 @@ chmod +x scripts/proxmox/create-lxc-docker-portainer.sh
 pct exec <CONTAINER_ID> -- passwd root
 ```
 
-**Step 2: Set Up SSH Access (After setting root password)**
-```bash
-# Make executable
-chmod +x scripts/proxmox/setup-lxc-ssh-deploy.sh
-
-# Set up SSH and deploy user
-./scripts/proxmox/setup-lxc-ssh-deploy.sh -i <CONTAINER_ID>
-```
 
 **Option 2: Run Directly from GitHub**
 
@@ -68,36 +49,19 @@ chmod +x create-lxc-docker-portainer.sh
 pct exec <CONTAINER_ID> -- passwd root
 ```
 
-**Step 2: Set Up SSH Access (After setting root password)**
-```bash
-# Download and run SSH setup script
-curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/proxmox/setup-lxc-ssh-deploy.sh | bash -s -- -i <CONTAINER_ID>
-```
 
 **Parameters:**
 
-*Main Script:*
 - `-n, --name`: Container name (required)
 - `-p, --project`: Project name for organization
 
-*SSH Setup Script:*
-- `-i, --id`: Container ID (required)
-
 **What it creates:**
 
-*Main Script:*
 - LXC container with Docker and Portainer
 - Portainer accessible on port 9000 (HTTP) and 9443 (HTTPS)
 - Deployment directories: `/opt/deployments/staging` and `/opt/deployments/production`
 - Docker Compose template for .NET API deployments
 - Auto-start services for container and Portainer
-
-*SSH Setup Script:*
-- `deploy` user with Docker access and SSH setup
-- SSH key pair generated at `~/.ssh/portainer_deploy`
-- SSH server configured for key-based authentication
-- SSH connection tested and verified
-- Proper ownership of deployment directories
 
 **Requirements:**
 - Proxmox VE host
@@ -123,26 +87,12 @@ passwd root
 
 **Setting Up GitHub Actions Deployment:**
 
-After running the SSH setup script, add these secrets to your GitHub repository:
+For Portainer API deployment, configure these 6 repository secrets in GitHub:
 
-**Required for SSH deployment:**
-1. Get the private key content:
-```bash
-cat ~/.ssh/portainer_deploy
-```
-
-2. Add to GitHub repository secrets:
-- **PORTAINER_SSH_KEY**: Copy the entire output from step 1 (including `-----BEGIN` and `-----END` lines)
-- **PORTAINER_HOST**: Container IP address or your cloudflared tunnel hostname
-- **PORTAINER_SSH_USER**: `deploy`
-
-**Optional for Portainer API access:**
-- **PORTAINER_URL**: `http://your-container-ip:9000`
-- **PORTAINER_USERNAME**: Your Portainer admin username
-- **PORTAINER_PASSWORD**: Your Portainer admin password
-
-The SSH setup script automatically handles:
-- SSH key pair generation
-- Adding public key to the container
-- Testing the SSH connection
+1. **DOCKER_USERNAME**: Your Docker Hub username
+2. **DOCKER_PASSWORD**: Your Docker Hub password/token
+3. **PORTAINER_URL**: Public hostname on cloudflared tunnel (including protocol, excluding port)
+4. **PORTAINER_USERNAME**: Your Portainer admin username
+5. **PORTAINER_PASSWORD**: Your Portainer admin password
+6. **PORTAINER_ENDPOINT_ID**: Go to 'Home', click 'local' container, check URL after #! for the ID
 
