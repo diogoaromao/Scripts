@@ -200,34 +200,32 @@ EOF
 # Get container IP
 CONTAINER_IP=$(pct exec $CONTAINER_ID -- hostname -I | awk '{print $1}')
 
-# Prompt to set root password
-print_status "Setting root password for container..."
-echo ""
-echo "You will now enter the container shell to set the root password."
-echo "Once inside the container, run: passwd root"
-echo "Then type 'exit' to return to the host."
-echo "Press Enter to continue..."
-read -p ""
-
-pct enter $CONTAINER_ID
-
-echo -e "${GREEN}[SUCCESS]${NC} LXC container setup completed successfully!"
+print_success "LXC container setup completed successfully!"
 echo ""
 echo "Container Details:"
 echo "  ID: $CONTAINER_ID"
-echo "  Name: $CONTAINER_NAME"
+echo "  Name: $CONTAINER_NAME"  
 echo "  Hostname: $HOSTNAME"
 echo "  IP Address: $CONTAINER_IP"
+
+# Debug output
+if [[ -z "$CONTAINER_ID" ]]; then
+    print_error "CONTAINER_ID is empty!"
+fi
+if [[ -z "$CONTAINER_NAME" ]]; then
+    print_error "CONTAINER_NAME is empty!"
+fi
 echo ""
 echo "Services:"
 echo "  Portainer Web UI: http://$CONTAINER_IP:9000 or https://$CONTAINER_IP:9443"
 echo "  Docker: Installed and running"
 echo ""
 echo "Next Steps:"
-echo "  1. Access Portainer at http://$CONTAINER_IP:9000"
-echo "  2. Setup admin password or use generated one:"
+echo "  1. Set root password: pct exec $CONTAINER_ID -- passwd root"
+echo "  2. Access Portainer at http://$CONTAINER_IP:9000"
+echo "  3. Setup admin password or use generated one:"
 echo "     pct exec $CONTAINER_ID -- cat /root/portainer_admin_password.txt"
-echo "  3. Use /opt/deployments/staging and /opt/deployments/production for your .NET APIs"
+echo "  4. Use /opt/deployments/staging and /opt/deployments/production for your .NET APIs"
 echo ""
 echo "Deployment directories created:"
 echo "  - /opt/deployments/staging"
