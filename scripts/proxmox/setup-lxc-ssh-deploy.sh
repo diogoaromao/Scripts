@@ -107,7 +107,10 @@ sleep 3
 
 # Test SSH connection
 print_status "Testing SSH connection..."
-if ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -o ConnectTimeout=10 deploy@$CONTAINER_IP "echo 'SSH connection successful'" > /dev/null 2>&1; then
+SSH_TEST_RESULT=0
+ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no -o ConnectTimeout=10 deploy@$CONTAINER_IP "echo 'SSH connection successful'" > /dev/null 2>&1 || SSH_TEST_RESULT=1
+
+if [[ $SSH_TEST_RESULT -eq 0 ]]; then
     print_success "SSH connection test passed"
 else
     print_error "SSH connection test failed"
@@ -115,6 +118,7 @@ else
     echo "ssh -i $SSH_KEY_PATH deploy@$CONTAINER_IP"
 fi
 
+# Ensure this always runs
 print_success "SSH and deploy user setup completed successfully!"
 echo ""
 echo "Container Details:"
