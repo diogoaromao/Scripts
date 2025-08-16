@@ -148,30 +148,6 @@ pct exec $CONTAINER_ID -- bash -c "
     mkdir -p /opt/deployments/{staging,production}
     chmod 755 /opt/deployments/{staging,production}
     
-    # Create sample docker-compose template for .NET APIs
-    cat > /opt/deployments/docker-compose.template.yml << 'EOF'
-version: '3.8'
-
-services:
-  api:
-    image: \${API_IMAGE:-mcr.microsoft.com/dotnet/samples:aspnetapp}
-    container_name: \${PROJECT_NAME:-myapi}-\${ENVIRONMENT:-staging}
-    restart: unless-stopped
-    ports:
-      - '\${API_PORT:-5000}:80'
-      - '\${API_HTTPS_PORT:-5001}:443'
-    environment:
-      - ASPNETCORE_ENVIRONMENT=\${ENVIRONMENT:-Development}
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-    volumes:
-      - \${APP_DATA:-./data}:/app/data
-    networks:
-      - api-network
-
-networks:
-  api-network:
-    driver: bridge
-EOF
 "
 
 # Create systemd service for Portainer
@@ -239,4 +215,3 @@ echo ""
 echo "Deployment directories created:"
 echo "  - /opt/deployments/staging"
 echo "  - /opt/deployments/production"
-echo "  - /opt/deployments/docker-compose.template.yml"

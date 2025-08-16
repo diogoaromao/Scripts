@@ -14,7 +14,6 @@ Automated script for creating Proxmox LXC containers with Docker and Portainer p
 - Sets up Portainer with auto-generated admin password
 - Creates organized deployment directories for staging/production
 - Includes systemd services for auto-start
-- Provides Docker Compose template for .NET APIs
 
 **Usage:**
 
@@ -60,7 +59,6 @@ pct exec <CONTAINER_ID> -- passwd root
 - LXC container with Docker and Portainer
 - Portainer accessible on port 9000 (HTTP) and 9443 (HTTPS)
 - Deployment directories: `/opt/deployments/staging` and `/opt/deployments/production`
-- Docker Compose template for .NET API deployments
 - Auto-start services for container and Portainer
 
 **Requirements:**
