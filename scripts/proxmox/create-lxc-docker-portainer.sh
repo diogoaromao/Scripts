@@ -24,11 +24,9 @@ get_next_id() {
 
 # Parse arguments
 CONTAINER_NAME=""
-PROJECT=""
 while [[ $# -gt 0 ]]; do
     case $1 in
         -n|--name) CONTAINER_NAME="$2"; shift 2 ;;
-        -p|--project) PROJECT="$2"; shift 2 ;;
         *) shift ;;
     esac
 done
@@ -41,6 +39,7 @@ if [[ -z "$CONTAINER_NAME" ]]; then
         exit 1
     fi
 fi
+
 
 # Get available ID
 CONTAINER_ID=$(get_next_id)
@@ -141,14 +140,6 @@ EOF
     docker-compose up -d
 "
 
-# Create deployment directories
-print_status "Creating deployment directories..."
-pct exec $CONTAINER_ID -- bash -c "
-    # Create deployment directories
-    mkdir -p /opt/deployments/{staging,production}
-    chmod 755 /opt/deployments/{staging,production}
-    
-"
 
 # Create systemd service for Portainer
 print_status "Creating Portainer systemd service..."
@@ -210,8 +201,6 @@ echo "     - PORTAINER_URL: Public hostname on cloudflared tunnel (including pro
 echo "     - PORTAINER_USERNAME: Your Portainer admin username"
 echo "     - PORTAINER_PASSWORD: Your Portainer admin password"
 echo "     - PORTAINER_ENDPOINT_ID: Go to 'Home', click 'local' container, check URL after #! for the ID"
-echo "  6. Use /opt/deployments/staging and /opt/deployments/production for your .NET APIs"
+echo "  6. Deploy your applications using GitHub Actions or Portainer API"
 echo ""
-echo "Deployment directories created:"
-echo "  - /opt/deployments/staging"
-echo "  - /opt/deployments/production"
+echo "Container ready for Portainer API deployments!"
