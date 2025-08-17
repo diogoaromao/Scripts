@@ -412,7 +412,7 @@ jobs:
 "@
 
 $workflowPath = "$workflowDir\deploy.yml"
-$workflowContent | Out-File -FilePath $workflowPath -Encoding UTF8
+$workflowContent | Out-File -FilePath $workflowPath -Encoding ASCII
 
 Write-Host "GitHub Actions workflow generated successfully!" -ForegroundColor Green
 Write-Host "File created: $workflowPath" -ForegroundColor Cyan
