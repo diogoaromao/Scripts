@@ -194,10 +194,10 @@ Write-Host "   - Deploys: Staging -> Production" -ForegroundColor White
 Write-Host ""
 Write-Host "Expected project structure:" -ForegroundColor Yellow
 Write-Host "   $standardizedName/" -ForegroundColor White
-Write-Host "   +-- api/" -ForegroundColor White
-Write-Host "   |   +-- Dockerfile" -ForegroundColor White
-Write-Host "   +-- web/" -ForegroundColor White
-Write-Host "       +-- Dockerfile" -ForegroundColor White
+Write-Host "   - api/" -ForegroundColor White
+Write-Host "     - Dockerfile" -ForegroundColor White
+Write-Host "   - web/" -ForegroundColor White
+Write-Host "     - Dockerfile" -ForegroundColor White
 Write-Host ""
 Write-Host "Required GitHub Secrets:" -ForegroundColor Yellow
 Write-Host "   - PORTAINER_URL" -ForegroundColor White
