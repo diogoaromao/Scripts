@@ -2,21 +2,17 @@ param(
     [string]$SolutionName
 )
 
-# Get solution name if not provided
 if (-not $SolutionName) {
     $SolutionName = Read-Host "Enter the solution name"
 }
 
-# Convert to lowercase and replace spaces/special chars with hyphens
 $standardizedName = $SolutionName.ToLower() -replace '[^a-z0-9]', '-'
 
-# Create .github/workflows directory if it doesn't exist
 $workflowDir = ".github\workflows"
 if (-not (Test-Path $workflowDir)) {
     New-Item -ItemType Directory -Path $workflowDir -Force | Out-Null
 }
 
-# Generate the workflow YAML content
 $workflowContent = @"
 name: Deploy $SolutionName
 
@@ -178,39 +174,38 @@ jobs:
           -H "X-API-Key: `${{ secrets.PORTAINER_API_KEY }}"
 "@
 
-# Write the workflow file
 $workflowPath = "$workflowDir\deploy.yml"
 $workflowContent | Out-File -FilePath $workflowPath -Encoding UTF8
 
-Write-Host "✅ GitHub Actions workflow generated successfully!" -ForegroundColor Green
-Write-Host "📁 File created: $workflowPath" -ForegroundColor Cyan
+Write-Host "GitHub Actions workflow generated successfully!" -ForegroundColor Green
+Write-Host "File created: $workflowPath" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Workflow Details:" -ForegroundColor Yellow
-Write-Host "   - Solution: $SolutionName" -ForegroundColor White
-Write-Host "   - Standardized name: $standardizedName" -ForegroundColor White
-Write-Host "   - Triggers: Push to main/master, PR, manual dispatch" -ForegroundColor White
-Write-Host "   - Builds: API and Web Docker images" -ForegroundColor White
-Write-Host "   - Deploys: Staging -> Production" -ForegroundColor White
+Write-Host "  Solution: $SolutionName" -ForegroundColor White
+Write-Host "  Standardized name: $standardizedName" -ForegroundColor White
+Write-Host "  Triggers: Push to main/master, PR, manual dispatch" -ForegroundColor White
+Write-Host "  Builds: API and Web Docker images" -ForegroundColor White
+Write-Host "  Deploys: Staging then Production" -ForegroundColor White
 Write-Host ""
 Write-Host "Expected project structure:" -ForegroundColor Yellow
-Write-Host "   $standardizedName/" -ForegroundColor White
-Write-Host "   - api/" -ForegroundColor White
-Write-Host "     - Dockerfile" -ForegroundColor White
-Write-Host "   - web/" -ForegroundColor White
-Write-Host "     - Dockerfile" -ForegroundColor White
+Write-Host "  $standardizedName/" -ForegroundColor White
+Write-Host "    api/" -ForegroundColor White
+Write-Host "      Dockerfile" -ForegroundColor White
+Write-Host "    web/" -ForegroundColor White
+Write-Host "      Dockerfile" -ForegroundColor White
 Write-Host ""
 Write-Host "Required GitHub Secrets:" -ForegroundColor Yellow
-Write-Host "   - PORTAINER_URL" -ForegroundColor White
-Write-Host "   - PORTAINER_API_KEY" -ForegroundColor White
-Write-Host "   - STAGING_API_STACK_ID" -ForegroundColor White
-Write-Host "   - STAGING_API_CONTAINER_ID" -ForegroundColor White
-Write-Host "   - STAGING_API_PORT" -ForegroundColor White
-Write-Host "   - STAGING_WEB_STACK_ID" -ForegroundColor White
-Write-Host "   - STAGING_WEB_CONTAINER_ID" -ForegroundColor White
-Write-Host "   - STAGING_WEB_PORT" -ForegroundColor White
-Write-Host "   - PROD_API_STACK_ID" -ForegroundColor White
-Write-Host "   - PROD_API_CONTAINER_ID" -ForegroundColor White
-Write-Host "   - PROD_API_PORT" -ForegroundColor White
-Write-Host "   - PROD_WEB_STACK_ID" -ForegroundColor White
-Write-Host "   - PROD_WEB_CONTAINER_ID" -ForegroundColor White
-Write-Host "   - PROD_WEB_PORT" -ForegroundColor White
+Write-Host "  PORTAINER_URL" -ForegroundColor White
+Write-Host "  PORTAINER_API_KEY" -ForegroundColor White
+Write-Host "  STAGING_API_STACK_ID" -ForegroundColor White
+Write-Host "  STAGING_API_CONTAINER_ID" -ForegroundColor White
+Write-Host "  STAGING_API_PORT" -ForegroundColor White
+Write-Host "  STAGING_WEB_STACK_ID" -ForegroundColor White
+Write-Host "  STAGING_WEB_CONTAINER_ID" -ForegroundColor White
+Write-Host "  STAGING_WEB_PORT" -ForegroundColor White
+Write-Host "  PROD_API_STACK_ID" -ForegroundColor White
+Write-Host "  PROD_API_CONTAINER_ID" -ForegroundColor White
+Write-Host "  PROD_API_PORT" -ForegroundColor White
+Write-Host "  PROD_WEB_STACK_ID" -ForegroundColor White
+Write-Host "  PROD_WEB_CONTAINER_ID" -ForegroundColor White
+Write-Host "  PROD_WEB_PORT" -ForegroundColor White
