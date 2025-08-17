@@ -97,9 +97,13 @@ For Portainer API deployment, configure these 6 repository secrets in GitHub:
 
 ## GitHub Actions Workflow Generator
 
-### `scripts/github/generate-workflow.sh`
+### `scripts/github/generate-workflow.sh` (Bash)
 
 Automated script for generating GitHub Actions workflows that deploy separate API and Web applications to Portainer via API. Based on a proven template with path filtering, SHA-based tagging, and environment-specific deployments.
+
+### `scripts/github/generate-workflow.ps1` (PowerShell)
+
+PowerShell version of the workflow generator for native Windows execution without WSL requirement.
 
 **Features:**
 - Interactive prompt for solution name
@@ -122,7 +126,16 @@ curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/git
 curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh | bash -s -- -s "myproject"
 ```
 
-*Windows PowerShell:*
+*Windows PowerShell (native):*
+```powershell
+# Interactive mode
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.ps1" -OutFile "temp-workflow.ps1"; .\temp-workflow.ps1; Remove-Item temp-workflow.ps1
+
+# With solution name
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.ps1" -OutFile "temp-workflow.ps1"; .\temp-workflow.ps1 -SolutionName "myproject"; Remove-Item temp-workflow.ps1
+```
+
+*Windows PowerShell (via bash):*
 ```powershell
 # Interactive mode
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh" -OutFile "temp-workflow.sh"; bash temp-workflow.sh; Remove-Item temp-workflow.sh
@@ -131,16 +144,9 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/ma
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh" -OutFile "temp-workflow.sh"; bash temp-workflow.sh -s "myproject"; Remove-Item temp-workflow.sh
 ```
 
-*Windows Command Prompt:*
-```cmd
-# Download and run interactively
-curl -o temp-workflow.sh https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh && bash temp-workflow.sh && del temp-workflow.sh
-
-# With solution name
-curl -o temp-workflow.sh https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh && bash temp-workflow.sh -s "myproject" && del temp-workflow.sh
-```
-
 **Local usage:**
+
+*Bash version:*
 ```bash
 # Make executable
 chmod +x scripts/github/generate-workflow.sh
@@ -150,6 +156,15 @@ chmod +x scripts/github/generate-workflow.sh
 
 # Non-interactive mode
 ./scripts/github/generate-workflow.sh -s "myproject"
+```
+
+*PowerShell version:*
+```powershell
+# Interactive mode (run from solution root)
+.\scripts\github\generate-workflow.ps1
+
+# Non-interactive mode
+.\scripts\github\generate-workflow.ps1 -SolutionName "myproject"
 ```
 
 **Parameters:**
