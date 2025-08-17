@@ -95,3 +95,75 @@ For Portainer API deployment, configure these 6 repository secrets in GitHub:
 
 **Example GitHub Actions workflow:** [deploy-to-portainer.yml](https://github.com/diogoaromao/Budget/blob/main/.github/workflows/deploy-to-portainer.yml)
 
+## GitHub Actions Workflow Generator
+
+### `scripts/github/generate-workflow.sh`
+
+Automated script for generating GitHub Actions workflows that deploy separate API and Web applications to Portainer via API. Based on a proven template with path filtering, SHA-based tagging, and environment-specific deployments.
+
+**Features:**
+- Interactive prompt for solution name
+- Generates complete CI/CD workflow with build and deploy stages
+- Path-based change detection (only builds what changed)
+- SHA-based Docker image tagging
+- Separate staging and production environments
+- Portainer API integration for deployments
+
+**Usage:**
+
+**Run directly from GitHub (from your solution root):**
+```bash
+# Interactive mode
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh | bash
+
+# With solution name
+curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh | bash -s -- -s "myproject"
+```
+
+**Local usage:**
+```bash
+# Make executable
+chmod +x scripts/github/generate-workflow.sh
+
+# Interactive mode (run from solution root)
+./scripts/github/generate-workflow.sh
+
+# Non-interactive mode
+./scripts/github/generate-workflow.sh -s "myproject"
+```
+
+**Parameters:**
+- `-s, --solution`: Solution name (e.g., 'inab', 'budget', 'ecommerce')
+
+**What it creates:**
+- `.github/workflows/deploy.yml` in your current directory
+- Complete workflow with build jobs for API and Web
+- Staging deployment jobs (API: port 3001, Web: port 3002)
+- Production deployment jobs (API: port 3000, Web: port 3003)
+
+**Expected project structure:**
+```
+YourSolution/
+├── src/
+│   ├── YOURSOLUTION.Api/
+│   │   └── Dockerfile.api
+│   └── yoursolution.web/
+│       └── Dockerfile.web
+└── .github/
+    └── workflows/
+        └── deploy.yml  (generated)
+```
+
+**Generated workflow includes:**
+- Path filtering: Only builds API or Web when their files change
+- Docker image names: `{solution}-api` and `{solution}-web`
+- Container names: `{solution}-staging`, `{solution}-web-staging`, etc.
+- SHA-based tagging for reliable deployments
+- Environment-specific configurations
+
+**Requirements:**
+- Docker Hub account for image storage
+- Portainer instance accessible via API
+- Project structure matching the expected layout above
+- Same 6 GitHub repository secrets as listed above
+
