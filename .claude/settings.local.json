@@ -7,7 +7,9 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(\"D:\\personal\\Scripts\\scripts\\github\\generate-workflow.ps1\" -SolutionName \"INAB\")",
+      "Bash(powershell.exe:*)"
     ],
     "defaultMode": "acceptEdits"
   }
