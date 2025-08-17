@@ -112,12 +112,32 @@ Automated script for generating GitHub Actions workflows that deploy separate AP
 **Usage:**
 
 **Run directly from GitHub (from your solution root):**
+
+*Linux/macOS/WSL:*
 ```bash
 # Interactive mode
 curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh | bash
 
 # With solution name
 curl -sSL https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh | bash -s -- -s "myproject"
+```
+
+*Windows PowerShell:*
+```powershell
+# Interactive mode
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh" -OutFile "temp-workflow.sh"; bash temp-workflow.sh; Remove-Item temp-workflow.sh
+
+# With solution name
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh" -OutFile "temp-workflow.sh"; bash temp-workflow.sh -s "myproject"; Remove-Item temp-workflow.sh
+```
+
+*Windows Command Prompt:*
+```cmd
+# Download and run interactively
+curl -o temp-workflow.sh https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh && bash temp-workflow.sh && del temp-workflow.sh
+
+# With solution name
+curl -o temp-workflow.sh https://raw.githubusercontent.com/diogoaromao/Scripts/main/scripts/github/generate-workflow.sh && bash temp-workflow.sh -s "myproject" && del temp-workflow.sh
 ```
 
 **Local usage:**
