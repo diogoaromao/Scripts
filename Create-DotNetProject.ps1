@@ -70,48 +70,37 @@ using $SolutionName.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
-// Create the web application builder
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers to the service container
-builder.Services.AddControllers();
+// Add services to the container.
 
-// Configure OpenAPI/Swagger documentation
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Configure in-memory database context
 builder.Services.AddDbContext<VideoGameDbContext>(options =>
     options.UseInMemoryDatabase("VideoGameDb"));
 
-// Get the current assembly for service registration
 var assembly = typeof(Program).Assembly;
 
-// Register MediatR services from the current assembly
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
-
-// Register FluentValidation validators from the current assembly
 builder.Services.AddValidatorsFromAssembly(assembly);
 
-// Build the web application
 var app = builder.Build();
 
-// Configure development-specific middleware
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
-// Enforce HTTPS
 app.UseHttpsRedirection();
 
-// Add authorization middleware
 app.UseAuthorization();
 
-// Map controller routes
 app.MapControllers();
 
-// Start the application
 app.Run();
 "@
 
