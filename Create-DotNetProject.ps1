@@ -260,12 +260,41 @@ Push-Location "src"
 # Check if npm is available
 if (Get-Command npm -ErrorAction SilentlyContinue) {
     # Create Vue.js project with basic setup
-    npm create vue@latest "$($SolutionName.ToLower()).web" -- --typescript --router --vitest --cypress --eslint --prettier
+    npm create vue@latest "$($SolutionName.ToLower()).web" -- --typescript --router --vitest --eslint
     
     # Install dependencies if project was created successfully
     if (Test-Path "$($SolutionName.ToLower()).web") {
         Push-Location "$($SolutionName.ToLower()).web"
         npm install
+        
+        # Override vite.config.js with INAB-style configuration
+        $viteConfig = @"
+import { defineConfig } from 'vite';
+import plugin from '@vitejs/plugin-vue';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+    plugins: [plugin()],
+    server: {
+        port: 58241,
+    }
+})
+"@
+        Set-Content -Path "vite.config.js" -Value $viteConfig
+        
+        # Override jsconfig.json with INAB-style configuration
+        $jsConfig = @"
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
+"@
+        Set-Content -Path "jsconfig.json" -Value $jsConfig
+        
         Pop-Location
     }
 } else {
@@ -329,7 +358,11 @@ New-Item -ItemType Directory -Path "tests" -Force | Out-Null
 
 # Add tests folder to solution as a solution folder
 Write-Host "Adding tests folder to solution..." -ForegroundColor Yellow
-dotnet sln add tests --solution-folder tests
+# Create a temporary placeholder file to add the solution folder
+$tempFile = "tests\.placeholder"
+Set-Content -Path $tempFile -Value ""
+dotnet sln add $tempFile --solution-folder tests
+Remove-Item $tempFile -Force
 
 # Create .github/workflows directory
 New-Item -ItemType Directory -Path ".github\workflows" -Force | Out-Null
