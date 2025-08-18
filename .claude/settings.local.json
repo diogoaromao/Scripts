@@ -11,8 +11,12 @@
       "Bash(\"D:\\personal\\Scripts\\scripts\\github\\generate-workflow.ps1\" -SolutionName \"INAB\")",
       "Bash(powershell.exe:*)",
       "WebFetch(domain:api.github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(Remove-Item \"C:\\Users\\DiogoRomao\\AppData\\Local\\Temp\\TestSolution*\" -Recurse -Force -ErrorAction SilentlyContinue)"
     ],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "D:\\"
+    ]
   }
 }

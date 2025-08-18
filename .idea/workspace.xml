@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="25047208-aeb9-4e41-8fd9-0356f84f0ca8" name="Changes" comment="" />
+    <list default="true" id="25047208-aeb9-4e41-8fd9-0356f84f0ca8" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -52,15 +54,7 @@
       <workItem from="1755275025074" duration="10704000" />
       <workItem from="1755299371897" duration="14888000" />
       <workItem from="1755461579184" duration="3793000" />
-      <workItem from="1755519922477" duration="7998000" />
-    </task>
-    <task id="LOCAL-00004" summary="update README.md">
-      <option name="closed" value="true" />
-      <created>1755261493640</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1755261493640</updated>
+      <workItem from="1755519922477" duration="8366000" />
     </task>
     <task id="LOCAL-00005" summary="fix script">
       <option name="closed" value="true" />
@@ -446,7 +440,15 @@
       <option name="project" value="LOCAL" />
       <updated>1755527901914</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755528179361</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1755528179361</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -478,10 +480,10 @@
     <MESSAGE value="include web project in solution" />
     <MESSAGE value="fix default project skeleton" />
     <MESSAGE value="fix web project" />
-    <MESSAGE value="fix script" />
     <MESSAGE value="&#10;fix script" />
     <MESSAGE value="    fix script api" />
-    <option name="LAST_COMMIT_MESSAGE" value="    fix script api" />
+    <MESSAGE value="fix script" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix script" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
