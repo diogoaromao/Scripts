@@ -263,6 +263,45 @@ public class GetAllVideoGamesController(ISender sender) : ControllerBase
 
 Set-Content -Path "$apiPath\Features\VideoGames\GetAllVideoGames.cs" -Value $getAllVideoGamesContent
 
+# Create Properties/launchSettings.json
+$launchSettingsContent = @"
+{
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5233"
+    },
+    "https": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchBrowser": true,
+      "launchUrl": "scalar",
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7072;http://localhost:5233"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "environmentVariables": {
+        "ASPNETCORE_HTTPS_PORTS": "8081",
+        "ASPNETCORE_HTTP_PORTS": "8080"
+      },
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  },
+  "`$schema": "https://json.schemastore.org/launchsettings.json"
+}
+"@
+
+Set-Content -Path "$apiPath\Properties\launchSettings.json" -Value $launchSettingsContent
+
 # Update API project file to match target configuration
 $apiProjectFile = "src\$SolutionName.Api\$SolutionName.Api.csproj"
 $apiProjectContent = @"

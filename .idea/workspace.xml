@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="25047208-aeb9-4e41-8fd9-0356f84f0ca8" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Create-DotNetProject.ps1" beforeDir="false" afterPath="$PROJECT_DIR$/Create-DotNetProject.ps1" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -54,7 +55,7 @@
       <workItem from="1755275025074" duration="10704000" />
       <workItem from="1755299371897" duration="14888000" />
       <workItem from="1755461579184" duration="3793000" />
-      <workItem from="1755519922477" duration="2834000" />
+      <workItem from="1755519922477" duration="4076000" />
     </task>
     <task id="LOCAL-00001" summary="Added script for lxc running portainer and docker">
       <option name="closed" value="true" />
@@ -392,7 +393,31 @@
       <option name="project" value="LOCAL" />
       <updated>1755522476119</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755522792502</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1755522792502</updated>
+    </task>
+    <task id="LOCAL-00044" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755522963211</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1755522963211</updated>
+    </task>
+    <task id="LOCAL-00045" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755523545216</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1755523545216</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
