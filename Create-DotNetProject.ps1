@@ -39,12 +39,10 @@ New-Item -ItemType Directory -Path "$apiPath\Data" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Entities" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Errors\VideoGames" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Features\VideoGames" -Force | Out-Null
-New-Item -ItemType Directory -Path "$apiPath\Shared" -Force | Out-Null
 
 # Create placeholder files to ensure directories are preserved
 Set-Content -Path "$apiPath\Errors\VideoGames\.gitkeep" -Value ""
 Set-Content -Path "$apiPath\Features\VideoGames\.gitkeep" -Value ""
-Set-Content -Path "$apiPath\Shared\.gitkeep" -Value ""
 
 # Install NuGet packages for API
 Write-Host "Installing NuGet packages for API..." -ForegroundColor Yellow
@@ -169,10 +167,6 @@ $apiProjectContent = @"
     <PackageReference Include="Scalar.AspNetCore" Version="1.2.49" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Shared\" />
-  </ItemGroup>
-
 </Project>
 "@
 
@@ -259,8 +253,8 @@ Push-Location "src"
 
 # Check if npm is available
 if (Get-Command npm -ErrorAction SilentlyContinue) {
-    # Create Vue.js project with basic setup
-    npm create vue@latest "$($SolutionName.ToLower()).web" -- --typescript --router --vitest --eslint
+    # Create Vue.js project with basic setup (JavaScript, not TypeScript)
+    npm create vue@latest "$($SolutionName.ToLower()).web" -- --router --vitest --eslint
     
     # Install dependencies if project was created successfully
     if (Test-Path "$($SolutionName.ToLower()).web") {
@@ -294,6 +288,9 @@ export default defineConfig({
 }
 "@
         Set-Content -Path "jsconfig.json" -Value $jsConfig
+        
+        # Remove cypress folder if it was created
+        Remove-Item "cypress" -Recurse -Force -ErrorAction SilentlyContinue
         
         Pop-Location
     }
