@@ -292,6 +292,18 @@ export default defineConfig({
         # Remove cypress folder if it was created
         Remove-Item "cypress" -Recurse -Force -ErrorAction SilentlyContinue
         
+        # Remove any TypeScript files and replace with JavaScript equivalents if needed
+        # Remove TypeScript config files that might have been created
+        Remove-Item "tsconfig.json" -Force -ErrorAction SilentlyContinue
+        Remove-Item "tsconfig.app.json" -Force -ErrorAction SilentlyContinue
+        Remove-Item "tsconfig.node.json" -Force -ErrorAction SilentlyContinue
+        
+        # Convert any .ts files to .js files in src directory
+        Get-ChildItem -Path "src" -Filter "*.ts" -Recurse | ForEach-Object {
+            $jsFile = $_.FullName -replace '\.ts$', '.js'
+            Move-Item $_.FullName $jsFile -Force
+        }
+        
         Pop-Location
     }
 } else {
