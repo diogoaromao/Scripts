@@ -53,6 +53,93 @@ dotnet add package Scalar.AspNetCore
 
 Pop-Location
 
+# Remove default template files
+Remove-Item "$apiPath\Controllers" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$apiPath\WeatherForecast.cs" -Force -ErrorAction SilentlyContinue
+
+# Create specific INAB-style Program.cs
+$programContent = @"
+using FluentValidation;
+using $SolutionName.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddOpenApi();
+
+builder.Services.AddDbContext<VideoGameDbContext>(options =>
+    options.UseInMemoryDatabase("VideoGameDb"));
+
+var assembly = typeof(Program).Assembly;
+
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+builder.Services.AddValidatorsFromAssembly(assembly);
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+"@
+
+Set-Content -Path "$apiPath\Program.cs" -Value $programContent
+
+# Create VideoGame entity
+$videoGameEntityContent = @"
+namespace $SolutionName.Api.Entities;
+
+public class VideoGame
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Genre { get; set; } = string.Empty;
+    public int ReleaseYear { get; set; }
+}
+"@
+
+Set-Content -Path "$apiPath\Entities\VideoGame.cs" -Value $videoGameEntityContent
+
+# Create VideoGameDbContext
+$dbContextContent = @"
+using $SolutionName.Api.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace $SolutionName.Api.Data;
+
+public class VideoGameDbContext : DbContext
+{
+    public VideoGameDbContext(DbContextOptions<VideoGameDbContext> options) : base(options)
+    {
+        
+    }
+    
+    public DbSet<VideoGame> VideoGames { get; set; }
+}
+"@
+
+Set-Content -Path "$apiPath\Data\VideoGameDbContext.cs" -Value $dbContextContent
+
+# Create CreateVideoGameRequest contract
+$createRequestContent = @"
+namespace $SolutionName.Api.Contracts.VideoGames;
+
+public record CreateVideoGameRequest(string Title, string Genre, int ReleaseYear);
+"@
+
+Set-Content -Path "$apiPath\Contracts\VideoGames\CreateVideoGameRequest.cs" -Value $createRequestContent
+
 # Update API project file to match target configuration
 $apiProjectFile = "src\$SolutionName.Api\$SolutionName.Api.csproj"
 $apiProjectContent = @"
