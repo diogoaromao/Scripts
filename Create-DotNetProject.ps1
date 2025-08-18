@@ -178,6 +178,26 @@ if (Get-Command npm -ErrorAction SilentlyContinue) {
 
 Pop-Location
 
+# Add Vue.js web project to solution if it was created successfully
+$webProjectName = "$($SolutionName.ToLower()).web"
+if (Test-Path "src\$webProjectName") {
+    Write-Host "Adding web project to solution..." -ForegroundColor Yellow
+    
+    # Create a dummy project file for the web project so it can be added to the solution
+    $webProjectContent = @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+</Project>
+"@
+    
+    Set-Content -Path "src\$webProjectName\$webProjectName.csproj" -Value $webProjectContent
+    
+    # Add to solution
+    dotnet sln add "src\$webProjectName\$webProjectName.csproj"
+}
+
 # Create tests directory (empty as in original)
 New-Item -ItemType Directory -Path "tests" -Force | Out-Null
 

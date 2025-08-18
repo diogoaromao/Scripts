@@ -204,7 +204,7 @@ YourSolution/
 
 ## .NET Project Creator
 
-### `Create-INABProject.ps1`
+### `Create-DotNetProject.ps1`
 
 PowerShell script that creates a complete .NET solution matching the [INAB project structure](https://github.com/diogoaromao/INAB). Creates a modern .NET 9 Web API with Vue.js frontend, pre-configured with essential NuGet packages and proper directory structure.
 
@@ -221,13 +221,13 @@ PowerShell script that creates a complete .NET solution matching the [INAB proje
 
 ```powershell
 # Interactive mode (prompts for solution name)
-.\Create-INABProject.ps1
+.\Create-DotNetProject.ps1
 
 # Non-interactive mode
-.\Create-INABProject.ps1 -SolutionName "MyProject"
+.\Create-DotNetProject.ps1 -SolutionName "MyProject"
 
 # Run directly from GitHub
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/Create-INABProject.ps1" -OutFile "Create-INABProject.ps1"; .\Create-INABProject.ps1; Remove-Item Create-INABProject.ps1
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/Create-DotNetProject.ps1" -OutFile "Create-DotNetProject.ps1"; .\Create-DotNetProject.ps1; Remove-Item Create-DotNetProject.ps1
 ```
 
 **Parameters:**
