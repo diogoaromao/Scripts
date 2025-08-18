@@ -542,6 +542,476 @@ header {
 "@
         Set-Content -Path "src\App.vue" -Value $appVueContent
         
+        # Create HelloWorld component
+        $helloWorldContent = @"
+<script setup>
+defineProps({
+  msg: {
+    type: String,
+    required: true,
+  },
+})
+</script>
+
+<template>
+  <div class="greetings">
+    <h1 class="green">{{ msg }}</h1>
+    <h3>
+      You've successfully created a project with
+      <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a> +
+      <a href="https://vuejs.org/" target="_blank" rel="noopener">Vue 3</a>.
+    </h3>
+  </div>
+</template>
+
+<style scoped>
+h1 {
+  font-weight: 500;
+  font-size: 2.6rem;
+  position: relative;
+  top: -10px;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+.greetings h1,
+.greetings h3 {
+  text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .greetings h1,
+  .greetings h3 {
+    text-align: left;
+  }
+}
+</style>
+"@
+        New-Item -ItemType Directory -Path "src\components" -Force | Out-Null
+        Set-Content -Path "src\components\HelloWorld.vue" -Value $helloWorldContent
+        
+        # Create WelcomeItem component
+        $welcomeItemContent = @"
+<template>
+  <div class="item">
+    <i>
+      <slot name="icon"></slot>
+    </i>
+    <div class="details">
+      <h3>
+        <slot name="heading"></slot>
+      </h3>
+      <slot></slot>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.item {
+  margin-top: 2rem;
+  display: flex;
+  position: relative;
+}
+
+.details {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+i {
+  display: flex;
+  place-items: center;
+  place-content: center;
+  width: 32px;
+  height: 32px;
+
+  color: var(--color-text);
+}
+
+h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: var(--color-heading);
+}
+
+@media (min-width: 1024px) {
+  .item {
+    margin-top: 0;
+    padding: 0.4rem 0 1rem calc(var(--section-gap) / 2);
+  }
+
+  i {
+    top: calc(50% - 25px);
+    left: -26px;
+    position: absolute;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    border-radius: 8px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .item:before {
+    content: ' ';
+    border-left: 1px solid var(--color-border);
+    position: absolute;
+    left: 0;
+    bottom: calc(50% + 25px);
+    height: calc(50% - 25px);
+  }
+
+  .item:after {
+    content: ' ';
+    border-left: 1px solid var(--color-border);
+    position: absolute;
+    left: 0;
+    top: calc(50% + 25px);
+    height: calc(50% - 25px);
+  }
+
+  .item:first-of-type:before {
+    display: none;
+  }
+
+  .item:last-of-type:after {
+    display: none;
+  }
+}
+</style>
+"@
+        Set-Content -Path "src\components\WelcomeItem.vue" -Value $welcomeItemContent
+        
+        # Create TheWelcome component
+        $theWelcomeContent = @"
+<script setup>
+import WelcomeItem from './WelcomeItem.vue'
+import DocumentationIcon from './icons/IconDocumentation.vue'
+import ToolingIcon from './icons/IconTooling.vue'
+import EcosystemIcon from './icons/IconEcosystem.vue'
+import CommunityIcon from './icons/IconCommunity.vue'
+import SupportIcon from './icons/IconSupport.vue'
+</script>
+
+<template>
+  <WelcomeItem>
+    <template #icon>
+      <DocumentationIcon />
+    </template>
+    <template #heading>Documentation</template>
+
+    Vue's
+    <a href="https://vuejs.org/" target="_blank" rel="noopener">official documentation</a>
+    provides you with all information you need to get started.
+  </WelcomeItem>
+
+  <WelcomeItem>
+    <template #icon>
+      <ToolingIcon />
+    </template>
+    <template #heading>Tooling</template>
+
+    This project is served and bundled with
+    <a href="https://vite.dev/guide/features.html" target="_blank" rel="noopener">Vite</a>. The
+    recommended IDE setup is
+    <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">VSCode</a>
+    +
+    <a href="https://github.com/vuejs/language-tools" target="_blank" rel="noopener">Vue - Official</a>. If
+    you need to test your components and web pages, check out
+    <a href="https://vitest.dev/" target="_blank" rel="noopener">Vitest</a>
+    and
+    <a href="https://www.cypress.io/" target="_blank" rel="noopener">Cypress</a>
+    /
+    <a href="https://playwright.dev/" target="_blank" rel="noopener">Playwright</a>.
+
+    More instructions are available in <code>README.md</code>.
+  </WelcomeItem>
+
+  <WelcomeItem>
+    <template #icon>
+      <EcosystemIcon />
+    </template>
+    <template #heading>Ecosystem</template>
+
+    Get official tools and libraries for your project:
+    <a href="https://pinia.vuejs.org/" target="_blank" rel="noopener">Pinia</a>,
+    <a href="https://router.vuejs.org/" target="_blank" rel="noopener">Vue Router</a>,
+    <a href="https://test-utils.vuejs.org/" target="_blank" rel="noopener">Vue Test Utils</a>,
+    and
+    <a href="https://github.com/vuejs/devtools" target="_blank" rel="noopener">Vue Dev Tools</a>. If
+    you need more resources, we suggest paying
+    <a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">Awesome Vue</a> a visit.
+  </WelcomeItem>
+
+  <WelcomeItem>
+    <template #icon>
+      <CommunityIcon />
+    </template>
+    <template #heading>Community</template>
+
+    Got stuck? Ask your question on
+    <a href="https://chat.vuejs.org" target="_blank" rel="noopener">Vue Land</a>, our official Discord server, or
+    <a href="https://stackoverflow.com/questions/tagged/vue.js" target="_blank" rel="noopener">StackOverflow</a>. You should also subscribe to
+    <a href="https://news.vuejs.org" target="_blank" rel="noopener">our mailing list</a>
+    and follow the official
+    <a href="https://twitter.com/vuejs" target="_blank" rel="noopener">@vuejs</a>
+    twitter account for latest news in the Vue world.
+  </WelcomeItem>
+
+  <WelcomeItem>
+    <template #icon>
+      <SupportIcon />
+    </template>
+    <template #heading>Support Vue</template>
+
+    As an independent project, Vue relies on community backing for its sustainability. You can help us by
+    <a href="https://vuejs.org/sponsor/" target="_blank" rel="noopener">becoming a sponsor</a>.
+  </WelcomeItem>
+</template>
+"@
+        Set-Content -Path "src\components\TheWelcome.vue" -Value $theWelcomeContent
+        
+        # Create icons directory and components
+        New-Item -ItemType Directory -Path "src\components\icons" -Force | Out-Null
+        
+        # Create IconDocumentation
+        $iconDocumentationContent = @"
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" fill="currentColor">
+    <path
+      d="M11 2.253a1 1 0 1 0-2 0h2zm-2 13.5a1 1 0 1 0 2 0h-2zm.447-12.53a1 1 0 1 0 1.107-1.666L9.447 2.777zM1 5.253V4.253h1v1H1zm18 0V4.253h1v1h-1zm-1.553.895a1 1 0 1 0 1.107 1.666l-1.107-1.666zM3.553 6.148a1 1 0 1 0-1.107-1.666L3.553 6.148zM2 6.253l8.447-.895 1.107 1.666L3.107 7.919 2 6.253zm7.447 9.342L18 14.7l1.107 1.666-8.553.895-1.107-1.666zm0-13.79a9.97 9.97 0 0 0-2.828.828L5.17 4.09a11.97 11.97 0 0 1 3.4-.998L9.447 2.22zm-2.828.828A9.95 9.95 0 0 0 4.65 4.65l-1.437-1.437a11.95 11.95 0 0 1 2.29-2.29L6.619 3.633zm-1.969 2.017A9.94 9.94 0 0 0 1.828 8.45L.172 7.55a11.94 11.94 0 0 1 1-3.622L4.65 4.65zM1.828 8.45a9.972 9.972 0 0 0-.172 1.8H.253a11.972 11.972 0 0 1 .207-2.168L1.828 8.45zm-.172 1.8a9.966 9.966 0 0 0 .172 1.8L.46 13.05a11.966 11.966 0 0 1-.207-2.168H1.656zm.172 1.8a9.94 9.94 0 0 0 .828 1.822L1.388 15.31a11.94 11.94 0 0 1-1-3.622L2.656 12.05zm.828 1.822a9.95 9.95 0 0 0 1.969 1.969l-1.437 1.437a11.95 11.95 0 0 1-2.29-2.29L3.484 13.872zm1.969 1.969a9.978 9.978 0 0 0 2.828.828L8.172 15.67a11.978 11.978 0 0 1-3.4-.998L5.453 15.841zm2.828.828a9.972 9.972 0 0 0 1.8.172V18.25a11.972 11.972 0 0 1-2.168-.207L9.281 16.669zm1.8.172a9.966 9.966 0 0 0 1.8-.172l.999 1.374a11.966 11.966 0 0 1-2.168.207V16.841zm1.8-.172a9.97 9.97 0 0 0 2.828-.828l1.72 1.169a11.97 11.97 0 0 1-3.4.998L12.081 16.669zm2.828-.828a9.95 9.95 0 0 0 1.969-1.969l1.437 1.437a11.95 11.95 0 0 1-2.29 2.29L14.85 15.841zm1.969-1.969a9.94 9.94 0 0 0 .828-1.822L18.612 13.05a11.94 11.94 0 0 1-1 3.622L16.819 13.872zm.828-1.822a9.966 9.966 0 0 0 .172-1.8H18.25a11.966 11.966 0 0 1-.207 2.168L17.647 12.05zm.172-1.8a9.972 9.972 0 0 0-.172-1.8L18.54 7.45a11.972 11.972 0 0 1 .207 2.168H17.819zm-.172-1.8a9.94 9.94 0 0 0-.828-1.822L17.612 4.09a11.94 11.94 0 0 1 1 3.622L16.819 8.45zm-.828-1.822a9.95 9.95 0 0 0-1.969-1.969l1.437-1.437a11.95 11.95 0 0 1 2.29 2.29L14.85 3.159z"
+    />
+  </svg>
+</template>
+"@
+        Set-Content -Path "src\components\icons\IconDocumentation.vue" -Value $iconDocumentationContent
+        
+        # Create IconTooling
+        $iconToolingContent = @"
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+    <path
+      d="M10 3.22l-.61-.6a5.5 5.5 0 0 0-7.666.105 5.5 5.5 0 0 0-.114 7.665L10 18.78l8.39-8.4a5.5 5.5 0 0 0-.114-7.665 5.5 5.5 0 0 0-7.666-.105l-.61.61z"
+    />
+  </svg>
+</template>
+"@
+        Set-Content -Path "src\components\icons\IconTooling.vue" -Value $iconToolingContent
+        
+        # Create IconEcosystem
+        $iconEcosystemContent = @"
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="20" fill="currentColor">
+    <path
+      d="M11.447 8.894a1 1 0 1 0-.894-1.789l.894 1.789zm-2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm0 1.789a1 1 0 1 0 .894-1.789l-.894 1.789zM7.447 7.106a1 1 0 1 0-.894 1.789l.894-1.789zM10 9a1 1 0 1 0 0 2v-2zm-9.447-1.106a1 1 0 1 0-.894-1.789l.894 1.789zm2.894-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm2 .5a1 1 0 1 0 .894-1.789l-.894 1.789zm0 1.789a1 1 0 1 0 .894-1.789l-.894 1.789zm-2-.789a1 1 0 1 0 .894 1.789l-.894-1.789zm2.894-.789a1 1 0 1 0-.894 1.789l.894-1.789zm-2 .5a1 1 0 1 0 .894-1.789l-.894 1.789zM8.553 11.106a1 1 0 1 0 .894-1.789l-.894 1.789zm4.894-1.789a1 1 0 1 0 .894 1.789l-.894-1.789zM9 10a1 1 0 1 0 0 2v-2zm-7.447.894a1 1 0 1 0 .894-1.789l-.894 1.789zM15 9a1 1 0 1 0 0 2v-2zm2.447.894a1 1 0 1 0-.894-1.789l.894 1.789zm-10-1.789l.894 1.789.894-1.789-.894-1.789-.894 1.789zm.894-1.789L9 5.553l.894 1.789L9 9.105l-.894-1.789zm0 1.789l-.894 1.789-.894-1.789.894-1.789.894 1.789zm-.894 1.789L7.553 11.106 8.447 9.317l.894 1.789-.894 1.789zm.894-1.789l.894-1.789-.894-1.789-.894 1.789.894 1.789zm.894-1.789L10 7.553l-.894-1.789L8.212 7.553l.894 1.789zM10 7.553l-.894 1.789.894 1.789.894-1.789L10 7.553zM9.106 9L9 8.447 8.447 9l.553.553L9.106 9zM1 9l.894 1.789L3.683 9l-.894-1.789L1 9zm8.894 0L9 9.553 9.553 11l.894-1.553L9.894 9zm.553.553l.894 1.789.894-1.789-.894-1.789-.894 1.789zm.894 1.789l.894-1.789-.894-1.789-.894 1.789.894 1.789zM17 9l-.894 1.789.894 1.789.894-1.789L17 9zm-4.553-.553L13 9l.553.553-.553.553L12.447 8.447z"
+    />
+  </svg>
+</template>
+"@
+        Set-Content -Path "src\components\icons\IconEcosystem.vue" -Value $iconEcosystemContent
+        
+        # Create IconCommunity
+        $iconCommunityContent = @"
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+    <path
+      d="M15 4a1 1 0 1 0 0 2V4zm0 11v-1a1 1 0 0 0-1 1h1zm0 4l-.707.707A1 1 0 0 0 16 19.414L15 18.414l-1.414 1.414A1 1 0 0 0 15 18.414V19zm1.414-2.414L15 18.414v-.828l1.414-1.414zm0-11.172L15 4.586V5.414l1.414 1.414zm-8.828 0L9 7.414V6.586l-1.414-1.414zm8.828 8.828L15 16.414v-.828l1.414-1.414zM9 7.414l1.414-1.414L9 4.586V7.414zM5 4a1 1 0 1 0 0 2V4zm0 11v-1a1 1 0 0 0-1 1h1zm0 4l-.707.707A1 1 0 0 0 6 19.414L5 18.414l-1.414 1.414A1 1 0 0 0 5 18.414V19zm1.414-2.414L5 18.414v-.828l1.414-1.414zm0-11.172L5 4.586V5.414l1.414 1.414zm-2.828 0L5 7.414V6.586L3.586 5.172zm2.828 8.828L5 16.414v-.828l1.414-1.414zM3 7.414l1.414-1.414L3 4.586V7.414z"
+    />
+  </svg>
+</template>
+"@
+        Set-Content -Path "src\components\icons\IconCommunity.vue" -Value $iconCommunityContent
+        
+        # Create IconSupport
+        $iconSupportContent = @"
+<template>
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
+    <path
+      d="M10 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM1.49 15.326a.78.78 0 0 1-.358-.442 3 3 0 0 1 4.308-3.516 6.484 6.484 0 0 0-1.905 3.959c-.023.222-.014.442.025.654a4.97 4.97 0 0 1-2.07-.655zM16.44 15.98a4.97 4.97 0 0 1-2.07.654.78.78 0 0 1 .357-.442 3 3 0 0 1 4.308-3.516 6.484 6.484 0 0 0-1.905 3.959c-.023.222-.014.442.025.654-.23-.02-.45-.032-.715-.309zM18 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM5.304 16.19a.844.844 0 0 1-.277-.71 5 5 0 0 1 9.947 0 .843.843 0 0 1-.277.71A6.975 6.975 0 0 1 10 18a6.974 6.974 0 0 1-4.696-1.81z"
+    />
+  </svg>
+</template>
+"@
+        Set-Content -Path "src\components\icons\IconSupport.vue" -Value $iconSupportContent
+        
+        # Create assets directory and CSS files
+        New-Item -ItemType Directory -Path "src\assets" -Force | Out-Null
+        
+        # Create base.css
+        $baseCssContent = @"
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --vt-c-white: #ffffff;
+  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-mute: #f2f2f2;
+
+  --vt-c-black: #181818;
+  --vt-c-black-soft: #222222;
+  --vt-c-black-mute: #282828;
+
+  --vt-c-indigo: #2c3e50;
+
+  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --vt-c-text-light-1: var(--vt-c-indigo);
+  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  --vt-c-text-dark-1: var(--vt-c-white);
+  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* semantic color variables for this project */
+:root {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white-soft);
+  --color-background-mute: var(--vt-c-white-mute);
+
+  --color-border: var(--vt-c-divider-light-2);
+  --color-border-hover: var(--vt-c-divider-light-1);
+
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: var(--vt-c-text-light-1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: var(--vt-c-black);
+    --color-background-soft: var(--vt-c-black-soft);
+    --color-background-mute: var(--vt-c-black-mute);
+
+    --color-border: var(--vt-c-divider-dark-2);
+    --color-border-hover: var(--vt-c-divider-dark-1);
+
+    --color-heading: var(--vt-c-text-dark-1);
+    --color-text: var(--vt-c-text-dark-2);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background: var(--color-background);
+  transition: color 0.5s, background-color 0.5s;
+  line-height: 1.6;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+"@
+        Set-Content -Path "src\assets\base.css" -Value $baseCssContent
+        
+        # Create main.css
+        $mainCssContent = @"
+@import './base.css';
+
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0 2rem;
+  }
+}
+"@
+        Set-Content -Path "src\assets\main.css" -Value $mainCssContent
+        
+        # Create configuration files
+        $editorConfigContent = @"
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
+charset = utf-8
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+max_line_length = 100
+"@
+        Set-Content -Path ".editorconfig" -Value $editorConfigContent
+        
+        $gitAttributesContent = @"
+* text=auto eol=lf
+"@
+        Set-Content -Path ".gitattributes" -Value $gitAttributesContent
+        
+        $eslintConfigContent = @"
+import js from '@eslint/js'
+import pluginVue from 'eslint-plugin-vue'
+
+export default [
+  {
+    name: 'app/files-to-lint',
+    files: ['**/*.{js,mjs,jsx,vue}'],
+  },
+
+  {
+    name: 'app/files-to-ignore',
+    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
+  },
+
+  js.configs.recommended,
+  ...pluginVue.configs['flat/essential'],
+
+  {
+    languageOptions: {
+      ecmaVersion: 'latest',
+    },
+  },
+]
+"@
+        Set-Content -Path "eslint.config.js" -Value $eslintConfigContent
+        
+        # Create .vscode directory and extensions.json
+        New-Item -ItemType Directory -Path ".vscode" -Force | Out-Null
+        $vscodeExtensionsContent = @"
+{
+  "recommendations": [
+    "Vue.volar",
+    "dbaeumer.vscode-eslint",
+    "EditorConfig.EditorConfig"
+  ]
+}
+"@
+        Set-Content -Path ".vscode\extensions.json" -Value $vscodeExtensionsContent
+        
         Pop-Location
     }
 } else {
@@ -988,6 +1458,78 @@ Set-Content -Path ".github\workflows\deploy.yml" -Value $deployWorkflowContent
 
 # Create .idea directory structure (JetBrains Rider)
 New-Item -ItemType Directory -Path ".idea\.idea.$SolutionName\.idea" -Force | Out-Null
+
+# Create .idea configuration files
+$ideaGitignoreContent = @"
+# Default ignored files
+/shelf/
+/workspace.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+"@
+Set-Content -Path ".idea\.idea.$SolutionName\.idea\.gitignore" -Value $ideaGitignoreContent
+
+$encodingsXmlContent = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" addBOMForNewFiles="with BOM under Windows, with no BOM otherwise" />
+</project>
+"@
+Set-Content -Path ".idea\.idea.$SolutionName\.idea\encodings.xml" -Value $encodingsXmlContent
+
+$indexLayoutXmlContent = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="UserContentModel">
+    <attachedFolders />
+    <explicitIncludes />
+    <explicitExcludes />
+  </component>
+</project>
+"@
+Set-Content -Path ".idea\.idea.$SolutionName\.idea\indexLayout.xml" -Value $indexLayoutXmlContent
+
+$vcsXmlContent = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+  </component>
+</project>
+"@
+Set-Content -Path ".idea\.idea.$SolutionName\.idea\vcs.xml" -Value $vcsXmlContent
+
+# Create .dockerignore file
+$dockerIgnoreContent = @"
+**/.dockerignore
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+**/bin
+**/charts
+**/docker-compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
+LICENSE
+README.md
+"@
+Set-Content -Path ".dockerignore" -Value $dockerIgnoreContent
 
 Write-Host "Solution '$SolutionName' created successfully!" -ForegroundColor Green
 Write-Host ""
