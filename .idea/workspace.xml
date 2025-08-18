@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="25047208-aeb9-4e41-8fd9-0356f84f0ca8" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/indexLayout.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="mock://D:/personal/Scripts/.claude/settings.local.json" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="31JvOCKBYVM1ZoEcu8MLkNMUr0Z" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SONARLINT_PRECOMMIT_ANALYSIS&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="25047208-aeb9-4e41-8fd9-0356f84f0ca8" name="Changes" comment="" />
+      <created>1755254956671</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1755254956671</updated>
+      <workItem from="1755254959047" duration="7666000" />
+      <workItem from="1755275025074" duration="10704000" />
+      <workItem from="1755299371897" duration="14888000" />
+      <workItem from="1755461579184" duration="3793000" />
+      <workItem from="1755519922477" duration="684000" />
+    </task>
+    <task id="LOCAL-00001" summary="Added script for lxc running portainer and docker">
+      <option name="closed" value="true" />
+      <created>1755260114397</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1755260114397</updated>
+    </task>
+    <task id="LOCAL-00002" summary="run script from github">
+      <option name="closed" value="true" />
+      <created>1755261288144</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1755261288144</updated>
+    </task>
+    <task id="LOCAL-00003" summary="changed README.md">
+      <option name="closed" value="true" />
+      <created>1755261307055</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1755261307055</updated>
+    </task>
+    <task id="LOCAL-00004" summary="update README.md">
+      <option name="closed" value="true" />
+      <created>1755261493640</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1755261493640</updated>
+    </task>
+    <task id="LOCAL-00005" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755261821709</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1755261821709</updated>
+    </task>
+    <task id="LOCAL-00006" summary="fix script ct id collision">
+      <option name="closed" value="true" />
+      <created>1755262008259</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262008259</updated>
+    </task>
+    <task id="LOCAL-00007" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755262097413</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262097413</updated>
+    </task>
+    <task id="LOCAL-00008" summary="add log">
+      <option name="closed" value="true" />
+      <created>1755262160273</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262160273</updated>
+    </task>
+    <task id="LOCAL-00009" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755262291698</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262291698</updated>
+    </task>
+    <task id="LOCAL-00010" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755262471487</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262471487</updated>
+    </task>
+    <task id="LOCAL-00011" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755262814156</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262814156</updated>
+    </task>
+    <task id="LOCAL-00012" summary="fix">
+      <option name="closed" value="true" />
+      <created>1755262956808</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1755262956808</updated>
+    </task>
+    <task id="LOCAL-00013" summary="working script">
+      <option name="closed" value="true" />
+      <created>1755264120778</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1755264120778</updated>
+    </task>
+    <task id="LOCAL-00014" summary="final commit">
+      <option name="closed" value="true" />
+      <created>1755264954576</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1755264954577</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Fix container name">
+      <option name="closed" value="true" />
+      <created>1755275109927</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1755275109927</updated>
+    </task>
+    <task id="LOCAL-00016" summary="added documentation on how to set root password">
+      <option name="closed" value="true" />
+      <created>1755278188122</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1755278188122</updated>
+    </task>
+    <task id="LOCAL-00017" summary="set root password on container creation">
+      <option name="closed" value="true" />
+      <created>1755278354424</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1755278354424</updated>
+    </task>
+    <task id="LOCAL-00018" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755278764562</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1755278764562</updated>
+    </task>
+    <task id="LOCAL-00019" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755278963656</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1755278963656</updated>
+    </task>
+    <task id="LOCAL-00020" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755280097975</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1755280097975</updated>
+    </task>
+    <task id="LOCAL-00021" summary="improve script">
+      <option name="closed" value="true" />
+      <created>1755281173854</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1755281173854</updated>
+    </task>
+    <task id="LOCAL-00022" summary="split script">
+      <option name="closed" value="true" />
+      <created>1755281686809</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1755281686809</updated>
+    </task>
+    <task id="LOCAL-00023" summary="fix scripts and documentation">
+      <option name="closed" value="true" />
+      <created>1755282723273</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1755282723273</updated>
+    </task>
+    <task id="LOCAL-00024" summary="update scripts and readme">
+      <option name="closed" value="true" />
+      <created>1755283419584</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1755283419584</updated>
+    </task>
+    <task id="LOCAL-00025" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755284332273</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1755284332273</updated>
+    </task>
+    <task id="LOCAL-00026" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755284650372</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1755284650372</updated>
+    </task>
+    <task id="LOCAL-00027" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755284969299</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1755284969299</updated>
+    </task>
+    <task id="LOCAL-00028" summary="remove ssh script">
+      <option name="closed" value="true" />
+      <created>1755300479181</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1755300479181</updated>
+    </task>
+    <task id="LOCAL-00029" summary="removed docker compose template">
+      <option name="closed" value="true" />
+      <created>1755356894136</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1755356894136</updated>
+    </task>
+    <task id="LOCAL-00030" summary="script to create github workflow">
+      <option name="closed" value="true" />
+      <created>1755358407446</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1755358407446</updated>
+    </task>
+    <task id="LOCAL-00031" summary="generate deploy script">
+      <option name="closed" value="true" />
+      <created>1755444705274</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1755444705274</updated>
+    </task>
+    <task id="LOCAL-00032" summary="make it possible to run on several os">
+      <option name="closed" value="true" />
+      <created>1755453958392</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1755453958392</updated>
+    </task>
+    <task id="LOCAL-00033" summary="add ps1 script">
+      <option name="closed" value="true" />
+      <created>1755461851230</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1755461851230</updated>
+    </task>
+    <task id="LOCAL-00034" summary="update README">
+      <option name="closed" value="true" />
+      <created>1755461907963</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1755461907963</updated>
+    </task>
+    <task id="LOCAL-00035" summary="fix script">
+      <option name="closed" value="true" />
+      <created>1755465475862</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1755465475862</updated>
+    </task>
+    <task id="LOCAL-00036" summary="script">
+      <option name="closed" value="true" />
+      <created>1755465932475</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1755465932475</updated>
+    </task>
+    <task id="LOCAL-00037" summary="fix">
+      <option name="closed" value="true" />
+      <created>1755466705399</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1755466705399</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="Added script for lxc running portainer and docker" />
+    <MESSAGE value="run script from github" />
+    <MESSAGE value="changed README.md" />
+    <MESSAGE value="update README.md" />
+    <MESSAGE value="fix script ct id collision" />
+    <MESSAGE value="add log" />
+    <MESSAGE value="working script" />
+    <MESSAGE value="final commit" />
+    <MESSAGE value="Fix container name" />
+    <MESSAGE value="added documentation on how to set root password" />
+    <MESSAGE value="set root password on container creation" />
+    <MESSAGE value="improve script" />
+    <MESSAGE value="split script" />
+    <MESSAGE value="fix scripts and documentation" />
+    <MESSAGE value="update scripts and readme" />
+    <MESSAGE value="remove ssh script" />
+    <MESSAGE value="removed docker compose template" />
+    <MESSAGE value="script to create github workflow" />
+    <MESSAGE value="generate deploy script" />
+    <MESSAGE value="make it possible to run on several os" />
+    <MESSAGE value="add ps1 script" />
+    <MESSAGE value="update README" />
+    <MESSAGE value="fix script" />
+    <MESSAGE value="script" />
+    <MESSAGE value="fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.OperationCanceledException" breakIfHandledByOtherCode="false" displayValue="System.OperationCanceledException" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.Tasks.TaskCanceledException" breakIfHandledByOtherCode="false" displayValue="System.Threading.Tasks.TaskCanceledException" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

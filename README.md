@@ -202,3 +202,78 @@ YourSolution/
 - Project structure matching the expected layout above
 - Same 6 GitHub repository secrets as listed above
 
+## .NET Project Creator
+
+### `Create-INABProject.ps1`
+
+PowerShell script that creates a complete .NET solution matching the [INAB project structure](https://github.com/diogoaromao/INAB). Creates a modern .NET 9 Web API with Vue.js frontend, pre-configured with essential NuGet packages and proper directory structure.
+
+**Features:**
+- Interactive solution name prompt
+- Creates .NET 9 Web API project with modern architecture
+- Vue.js 3 frontend with TypeScript support
+- Pre-installs essential NuGet packages (ErrorOr, FluentValidation, MediatR, etc.)
+- Generates proper directory structure for clean architecture
+- Docker support with Dockerfile.api
+- Multiple environment configurations (Development, Production, Staging)
+
+**Usage:**
+
+```powershell
+# Interactive mode (prompts for solution name)
+.\Create-INABProject.ps1
+
+# Non-interactive mode
+.\Create-INABProject.ps1 -SolutionName "MyProject"
+
+# Run directly from GitHub
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/Create-INABProject.ps1" -OutFile "Create-INABProject.ps1"; .\Create-INABProject.ps1; Remove-Item Create-INABProject.ps1
+```
+
+**Parameters:**
+- `-SolutionName`: Name for the solution (e.g., 'INAB', 'MyAPI', 'ECommerce')
+
+**What it creates:**
+```
+YourSolution/
+├── YourSolution.sln
+├── src/
+│   ├── YourSolution.Api/           # .NET 9 Web API
+│   │   ├── Contracts/VideoGames/
+│   │   ├── Data/
+│   │   ├── Entities/
+│   │   ├── Errors/VideoGames/
+│   │   ├── Features/VideoGames/
+│   │   ├── Properties/
+│   │   ├── Dockerfile.api
+│   │   ├── Program.cs
+│   │   └── appsettings.*.json
+│   └── yoursolution.web/           # Vue.js 3 with TypeScript
+│       ├── src/
+│       ├── public/
+│       ├── .vscode/
+│       └── package.json
+├── tests/                          # Ready for test projects
+├── .github/workflows/              # Ready for CI/CD
+└── .idea/                          # JetBrains Rider support
+```
+
+**Installed NuGet Packages:**
+- ErrorOr v2.0.1 - Functional error handling
+- FluentValidation - Input validation
+- MediatR - CQRS pattern implementation
+- Microsoft.AspNetCore.OpenApi - OpenAPI/Swagger
+- Microsoft.EntityFrameworkCore.InMemory - EF Core with in-memory database
+- Scalar.AspNetCore - Modern API documentation
+
+**Requirements:**
+- .NET 9 SDK installed
+- Node.js and npm (for Vue.js project creation)
+- PowerShell execution policy allowing script execution
+
+**Next Steps After Creation:**
+1. Build the solution: `dotnet build`
+2. Run the API: `dotnet run --project src\YourSolution.Api`
+3. Run the web app: `cd src\yoursolution.web && npm run dev`
+4. Use the GitHub workflow generator above to add CI/CD
+
