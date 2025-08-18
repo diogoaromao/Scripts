@@ -70,33 +70,48 @@ using $SolutionName.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
+// Create the web application builder
 var builder = WebApplication.CreateBuilder(args);
 
+// Add controllers to the service container
 builder.Services.AddControllers();
+
+// Configure OpenAPI/Swagger documentation
 builder.Services.AddOpenApi();
 
+// Configure in-memory database context
 builder.Services.AddDbContext<VideoGameDbContext>(options =>
     options.UseInMemoryDatabase("VideoGameDb"));
 
+// Get the current assembly for service registration
 var assembly = typeof(Program).Assembly;
 
+// Register MediatR services from the current assembly
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+
+// Register FluentValidation validators from the current assembly
 builder.Services.AddValidatorsFromAssembly(assembly);
 
+// Build the web application
 var app = builder.Build();
 
+// Configure development-specific middleware
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
+// Enforce HTTPS
 app.UseHttpsRedirection();
 
+// Add authorization middleware
 app.UseAuthorization();
 
+// Map controller routes
 app.MapControllers();
 
+// Start the application
 app.Run();
 "@
 
@@ -449,8 +464,8 @@ Push-Location "src"
 
 # Check if npm is available
 if (Get-Command npm -ErrorAction SilentlyContinue) {
-    # Create Vue.js project with basic setup (JavaScript, not TypeScript)
-    npm create vue@latest "$($SolutionName.ToLower()).web" -- --router --vitest --eslint
+    # Create Vue.js project using create-vite as stated in CHANGELOG.md
+    npm init --yes vue@latest "$($SolutionName.ToLower()).web" -- --eslint
     
     # Install dependencies if project was created successfully
     if (Test-Path "$($SolutionName.ToLower()).web") {
@@ -1012,29 +1027,30 @@ max_line_length = 100
         Set-Content -Path ".gitattributes" -Value $gitAttributesContent
         
         $eslintConfigContent = @"
+import { defineConfig, globalIgnores } from 'eslint/config'
+import globals from 'globals'
 import js from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
 
-export default [
+export default defineConfig([
   {
     name: 'app/files-to-lint',
     files: ['**/*.{js,mjs,jsx,vue}'],
   },
 
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+
   {
-    name: 'app/files-to-ignore',
-    ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
   },
 
   js.configs.recommended,
   ...pluginVue.configs['flat/essential'],
-
-  {
-    languageOptions: {
-      ecmaVersion: 'latest',
-    },
-  },
-]
+])
 "@
         Set-Content -Path "eslint.config.js" -Value $eslintConfigContent
         
@@ -1054,7 +1070,7 @@ export default [
         Pop-Location
     }
 } else {
-    Write-Warning "npm not found. Please install Node.js and npm, then run 'npm create vue@latest $($SolutionName.ToLower()).web' in the src directory"
+    Write-Warning "npm not found. Please install Node.js and npm, then run 'npm init --yes vue@latest $($SolutionName.ToLower()).web -- --eslint' in the src directory"
     
     # Create basic directory structure for web project
     New-Item -ItemType Directory -Path "$($SolutionName.ToLower()).web" -Force | Out-Null
@@ -1086,6 +1102,26 @@ if (Test-Path "src\$webProjectName") {
 "@
     
     Set-Content -Path "src\$webProjectName\$webProjectName.esproj" -Value $webProjectContent
+    
+    # Create CHANGELOG.md as mentioned in original INAB web project
+    $changelogContent = @"
+# CHANGELOG
+
+## Project Generation Steps
+
+1. Create Vue project using create-vite: ``npm init --yes vue@latest $($SolutionName.ToLower()).web -- --eslint``
+2. Update ``vite.config.js`` with port configuration
+3. Create project file ``$($SolutionName.ToLower()).web.esproj``
+4. Create ``launch.json`` for debugging
+5. Add project to solution
+6. Write the CHANGELOG.md file
+
+## Tools Used
+
+- create-vite
+"@
+    
+    Set-Content -Path "src\$webProjectName\CHANGELOG.md" -Value $changelogContent
     
     # Create Dockerfile.web for the web project
     $webDockerfileContent = @"
