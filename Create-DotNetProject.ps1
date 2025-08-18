@@ -40,9 +40,7 @@ New-Item -ItemType Directory -Path "$apiPath\Entities" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Errors\VideoGames" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Features\VideoGames" -Force | Out-Null
 
-# Create placeholder files to ensure directories are preserved
-Set-Content -Path "$apiPath\Errors\VideoGames\.gitkeep" -Value ""
-Set-Content -Path "$apiPath\Features\VideoGames\.gitkeep" -Value ""
+# Create actual INAB example files
 
 # Install NuGet packages for API
 Write-Host "Installing NuGet packages for API..." -ForegroundColor Yellow
@@ -144,6 +142,126 @@ public record CreateVideoGameRequest(string Title, string Genre, int ReleaseYear
 "@
 
 Set-Content -Path "$apiPath\Contracts\VideoGames\CreateVideoGameRequest.cs" -Value $createRequestContent
+
+# Create VideoGameErrors
+$videoGameErrorsContent = @"
+using ErrorOr;
+
+namespace $SolutionName.Api.Errors.VideoGames;
+
+public static class VideoGameErrors
+{
+    public static Error NotFound =>
+        Error.NotFound(
+            code: "VideoGame.NotFound",
+            description: "The requested video game was not found.");
+}
+"@
+
+Set-Content -Path "$apiPath\Errors\VideoGames\VideoGameErrors.cs" -Value $videoGameErrorsContent
+
+# Create CreateVideoGame feature
+$createVideoGameContent = @"
+using ErrorOr;
+using FluentValidation;
+using $SolutionName.Api.Contracts.VideoGames;
+using $SolutionName.Api.Data;
+using $SolutionName.Api.Entities;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+namespace $SolutionName.Api.Features.VideoGames;
+
+public static class CreateVideoGame
+{
+    public record Command(string Title, string Genre, int ReleaseYear) : IRequest<ErrorOr<Response>>;
+
+    public class Validator : AbstractValidator<Command>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.Title).NotEmpty();
+            RuleFor(x => x.Genre).NotEmpty();
+            RuleFor(x => x.ReleaseYear).GreaterThanOrEqualTo(1900);
+        }
+    }
+    
+    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+
+    public class Handler(VideoGameDbContext context, IValidator<Command> validator) : IRequestHandler<Command, ErrorOr<Response>>
+    {
+        public async Task<ErrorOr<Response>> Handle(Command request, CancellationToken cancellationToken)
+        {
+            var validationResult = validator.Validate(request);
+            if (!validationResult.IsValid)
+            {
+                return Error.Validation(code: "CreateVideoGame.Validation",
+                    string.Join(", ",
+                        validationResult.Errors.Select(x => x.ErrorMessage)));
+            }
+            
+            var videoGame = new VideoGame
+            {
+                Title = request.Title,
+                Genre = request.Genre,
+                ReleaseYear = request.ReleaseYear
+            };
+            
+            context.VideoGames.Add(videoGame);
+            await context.SaveChangesAsync(cancellationToken);
+
+            var response = new Response(videoGame.Id,
+                videoGame.Title,
+                videoGame.Genre,
+                videoGame.ReleaseYear);
+
+            return response;
+        }
+    }
+}
+"@
+
+Set-Content -Path "$apiPath\Features\VideoGames\CreateVideoGame.cs" -Value $createVideoGameContent
+
+# Create GetAllVideoGames feature
+$getAllVideoGamesContent = @"
+using $SolutionName.Api.Data;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace $SolutionName.Api.Features.VideoGames;
+
+public static class GetAllVideoGames
+{
+    public record Query : IRequest<IEnumerable<Response>>;
+    
+    public record Response(int Id, string Title, string Genre, int ReleaseYear);
+
+    public class Handler(VideoGameDbContext context) : IRequestHandler<Query, IEnumerable<Response>>
+    {
+        public async Task<IEnumerable<Response>> Handle(Query request, CancellationToken cancellationToken)
+        {
+            var videoGames = await context.VideoGames.ToListAsync(cancellationToken);
+            return videoGames.Select(vg => new Response(vg.Id, vg.Title, vg.Genre, vg.ReleaseYear));
+        }
+    }
+}
+
+[ApiController]
+[Route("api/games")]
+public class GetAllVideoGamesController(ISender sender) : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<GetAllVideoGames.Response>> GetAllVideoGames()
+    {
+        var response = await sender.Send(new GetAllVideoGames.Query());
+        return Ok(response);
+    }
+}
+"@
+
+Set-Content -Path "$apiPath\Features\VideoGames\GetAllVideoGames.cs" -Value $getAllVideoGamesContent
 
 # Update API project file to match target configuration
 $apiProjectFile = "src\$SolutionName.Api\$SolutionName.Api.csproj"
