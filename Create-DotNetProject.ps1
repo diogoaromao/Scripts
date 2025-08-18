@@ -614,6 +614,378 @@ Remove-Item $tempFile -Force
 # Create .github/workflows directory
 New-Item -ItemType Directory -Path ".github\workflows" -Force | Out-Null
 
+# Create deploy.yml workflow file
+$deployWorkflowContent = @"
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: docker.io
+  API_IMAGE_NAME: `${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-api
+  WEB_IMAGE_NAME: `${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-web
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      api: `${{ steps.changes.outputs.api }}
+      web: `${{ steps.changes.outputs.web }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - uses: dorny/paths-filter@v3
+      id: changes
+      with:
+        filters: |
+          api:
+            - 'src/$SolutionName.Api/**'
+            - '.github/workflows/deploy.yml'
+          web:
+            - 'src/$($SolutionName.ToLower()).web/**'
+            - '.github/workflows/deploy.yml'
+
+  build-api:
+    needs: changes
+    if: `${{ needs.changes.outputs.api == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-sha: `${{ steps.sha.outputs.sha }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        registry: `${{ env.REGISTRY }}
+        username: `${{ secrets.DOCKER_USERNAME }}
+        password: `${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Extract API metadata
+      id: api-meta
+      uses: docker/metadata-action@v5
+      with:
+        images: `${{ env.REGISTRY }}/`${{ env.API_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push API Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./src/$SolutionName.Api/Dockerfile.api
+        push: true
+        tags: `${{ steps.api-meta.outputs.tags }}
+        labels: `${{ steps.api-meta.outputs.labels }}
+
+  build-web:
+    needs: changes
+    if: `${{ needs.changes.outputs.web == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      image-sha: `${{ steps.sha.outputs.sha }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        registry: `${{ env.REGISTRY }}
+        username: `${{ secrets.DOCKER_USERNAME }}
+        password: `${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Extract web metadata
+      id: web-meta
+      uses: docker/metadata-action@v5
+      with:
+        images: `${{ env.REGISTRY }}/`${{ env.WEB_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Web Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./src/$($SolutionName.ToLower()).web
+        file: ./src/$($SolutionName.ToLower()).web/Dockerfile.web
+        push: true
+        tags: `${{ steps.web-meta.outputs.tags }}
+        labels: `${{ steps.web-meta.outputs.labels }}
+
+  deploy-api-staging:
+    needs: [changes, build-api]
+    if: `${{ needs.changes.outputs.api == 'true' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Authenticate with Portainer
+      id: auth
+      run: |
+        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+          -H "Content-Type: application/json" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
+        jwt=`$(echo `$response | jq -r .jwt)
+        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
+
+    - name: Stop existing API staging container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging/stop" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Remove existing API staging container
+      run: |
+        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Deploy API to Portainer Staging
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-staging" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-api:main-`${{ steps.sha.outputs.sha }}",
+            "ExposedPorts": {
+              "8080/tcp": {}
+            },
+            "Env": [
+              "ASPNETCORE_ENVIRONMENT=Staging"
+            ],
+            "HostConfig": {
+              "PortBindings": {
+                "8080/tcp": [
+                  {
+                    "HostPort": "3001"
+                  }
+                ]
+              },
+              "RestartPolicy": {
+                "Name": "unless-stopped"
+              }
+            }
+          }'
+
+    - name: Start API staging container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging/start" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+
+  deploy-web-staging:
+    needs: [changes, build-web]
+    if: `${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Authenticate with Portainer
+      id: auth
+      run: |
+        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+          -H "Content-Type: application/json" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
+        jwt=`$(echo `$response | jq -r .jwt)
+        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
+
+    - name: Stop existing web staging container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging/stop" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Remove existing web staging container
+      run: |
+        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Deploy Web to Portainer Staging
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web-staging" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-web:main-`${{ steps.sha.outputs.sha }}",
+            "ExposedPorts": {
+              "80/tcp": {}
+            },
+            "HostConfig": {
+              "PortBindings": {
+                "80/tcp": [
+                  {
+                    "HostPort": "3002"
+                  }
+                ]
+              },
+              "RestartPolicy": {
+                "Name": "unless-stopped"
+              }
+            }
+          }'
+
+    - name: Start web staging container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging/start" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+
+  deploy-api-production:
+    needs: [deploy-api-staging]
+    if: `${{ always() && needs.deploy-api-staging.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Authenticate with Portainer
+      id: auth
+      run: |
+        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+          -H "Content-Type: application/json" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
+        jwt=`$(echo `$response | jq -r .jwt)
+        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
+
+    - name: Stop existing API production container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())/stop" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Remove existing API production container
+      run: |
+        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Deploy API to Portainer Production
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-api:main-`${{ steps.sha.outputs.sha }}",
+            "ExposedPorts": {
+              "8080/tcp": {}
+            },
+            "Env": [
+              "ASPNETCORE_ENVIRONMENT=Production"
+            ],
+            "HostConfig": {
+              "PortBindings": {
+                "8080/tcp": [
+                  {
+                    "HostPort": "3000"
+                  }
+                ]
+              },
+              "RestartPolicy": {
+                "Name": "unless-stopped"
+              }
+            }
+          }'
+
+    - name: Start API production container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())/start" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+
+  deploy-web-production:
+    needs: [deploy-web-staging]
+    if: `${{ always() && needs.deploy-web-staging.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+    - name: Get short SHA
+      id: sha
+      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
+
+    - name: Authenticate with Portainer
+      id: auth
+      run: |
+        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+          -H "Content-Type: application/json" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
+        jwt=`$(echo `$response | jq -r .jwt)
+        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
+
+    - name: Stop existing web production container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web/stop" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Remove existing web production container
+      run: |
+        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
+
+    - name: Deploy Web to Portainer Production
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-web:main-`${{ steps.sha.outputs.sha }}",
+            "ExposedPorts": {
+              "80/tcp": {}
+            },
+            "HostConfig": {
+              "PortBindings": {
+                "80/tcp": [
+                  {
+                    "HostPort": "3003"
+                  }
+                ]
+              },
+              "RestartPolicy": {
+                "Name": "unless-stopped"
+              }
+            }
+          }'
+
+    - name: Start web production container
+      run: |
+        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web/start" \
+          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+"@
+
+Set-Content -Path ".github\workflows\deploy.yml" -Value $deployWorkflowContent
+
 # Create .idea directory structure (JetBrains Rider)
 New-Item -ItemType Directory -Path ".idea\.idea.$SolutionName\.idea" -Force | Out-Null
 
