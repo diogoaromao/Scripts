@@ -47,11 +47,14 @@ Write-Host "Installing NuGet packages for API..." -ForegroundColor Yellow
 Push-Location "src\$SolutionName.Api"
 
 dotnet add package ErrorOr --version 2.0.1
-dotnet add package FluentValidation
-dotnet add package MediatR
-dotnet add package Microsoft.AspNetCore.OpenApi
-dotnet add package Microsoft.EntityFrameworkCore.InMemory
-dotnet add package Scalar.AspNetCore
+dotnet add package FluentValidation.DependencyInjectionExtensions --version 12.0.0
+dotnet add package MediatR --version 12.5.0
+dotnet add package Microsoft.AspNetCore.OpenApi --version 9.0.8
+dotnet add package Microsoft.EntityFrameworkCore --version 9.0.8
+dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 9.0.8
+dotnet add package Microsoft.EntityFrameworkCore.Tools --version 9.0.8
+dotnet add package Microsoft.VisualStudio.Azure.Containers.Tools.Targets --version 1.22.1
+dotnet add package Scalar.AspNetCore --version 2.6.9
 
 Pop-Location
 
@@ -168,7 +171,6 @@ using $SolutionName.Api.Contracts.VideoGames;
 using $SolutionName.Api.Data;
 using $SolutionName.Api.Entities;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace $SolutionName.Api.Features.VideoGames;
 
@@ -217,22 +219,6 @@ public static class CreateVideoGame
 
             return response;
         }
-    }
-}
-
-[ApiController]
-[Route("api/games")]
-public class CreateVideoGameController(ISender sender) : ControllerBase
-{
-    [HttpPost]
-    public async Task<ActionResult<CreateVideoGame.Response>> CreateVideoGame(CreateVideoGameRequest request)
-    {
-        var command = new CreateVideoGame.Command(request.Title, request.Genre, request.ReleaseYear);
-        var result = await sender.Send(command);
-
-        return result.Match(
-            videoGame => CreatedAtAction(nameof(CreateVideoGame), new { id = videoGame.Id }, videoGame),
-            errors => BadRequest(errors));
     }
 }
 "@
@@ -327,17 +313,36 @@ $apiProjectContent = @"
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>57dac3bf-fec9-4a6a-a44d-e48497a5ccfb</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <UserSecretsId>aspnet-$SolutionName.Api-$(New-Guid)</UserSecretsId>
+    <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="ErrorOr" Version="2.0.1" />
-    <PackageReference Include="FluentValidation" Version="11.9.2" />
-    <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.0" />
-    <PackageReference Include="Scalar.AspNetCore" Version="1.2.49" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.6.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
+    <Content Update="appsettings.Production.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
+    <Content Update="appsettings.Staging.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
   </ItemGroup>
 
 </Project>
