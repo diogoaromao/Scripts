@@ -39,6 +39,12 @@ New-Item -ItemType Directory -Path "$apiPath\Data" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Entities" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Errors\VideoGames" -Force | Out-Null
 New-Item -ItemType Directory -Path "$apiPath\Features\VideoGames" -Force | Out-Null
+New-Item -ItemType Directory -Path "$apiPath\Shared" -Force | Out-Null
+
+# Create placeholder files to ensure directories are preserved
+Set-Content -Path "$apiPath\Errors\VideoGames\.gitkeep" -Value ""
+Set-Content -Path "$apiPath\Features\VideoGames\.gitkeep" -Value ""
+Set-Content -Path "$apiPath\Shared\.gitkeep" -Value ""
 
 # Install NuGet packages for API
 Write-Host "Installing NuGet packages for API..." -ForegroundColor Yellow
@@ -56,6 +62,7 @@ Pop-Location
 # Remove default template files
 Remove-Item "$apiPath\Controllers" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item "$apiPath\WeatherForecast.cs" -Force -ErrorAction SilentlyContinue
+Remove-Item "$apiPath\$SolutionName.Api.http" -Force -ErrorAction SilentlyContinue
 
 # Create specific INAB-style Program.cs
 $programContent = @"
@@ -212,11 +219,17 @@ Set-Content -Path "$apiSettingsPath\appsettings.Staging.json" -Value $stagingSet
 
 # Create Dockerfile for API
 $dockerfileContent = @"
+# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+
+# This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER `$APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+
+# This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
@@ -226,10 +239,12 @@ COPY . .
 WORKDIR "/src/src/$SolutionName.Api"
 RUN dotnet build "./$SolutionName.Api.csproj" -c `$BUILD_CONFIGURATION -o /app/build
 
+# This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "./$SolutionName.Api.csproj" -c `$BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
@@ -270,23 +285,51 @@ $webProjectName = "$($SolutionName.ToLower()).web"
 if (Test-Path "src\$webProjectName") {
     Write-Host "Adding web project to solution..." -ForegroundColor Yellow
     
-    # Create a dummy project file for the web project so it can be added to the solution
+    # Create .esproj file for Visual Studio integration
     $webProjectContent = @"
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.2752196">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <StartupCommand>npm run dev</StartupCommand>
+    <JavaScriptTestRoot>.\</JavaScriptTestRoot>
+    <JavaScriptTestFramework>Vitest</JavaScriptTestFramework>
+    <!-- Allows the build (or compile) script located on package.json to run on Build -->
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+    <!-- Folder where production build objects will be placed -->
+    <BuildOutputFolder>`$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
 </Project>
 "@
     
-    Set-Content -Path "src\$webProjectName\$webProjectName.csproj" -Value $webProjectContent
+    Set-Content -Path "src\$webProjectName\$webProjectName.esproj" -Value $webProjectContent
     
-    # Add to solution
-    dotnet sln add "src\$webProjectName\$webProjectName.csproj"
+    # Create Dockerfile.web for the web project
+    $webDockerfileContent = @"
+# Web-only Dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --no-cache
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine AS final
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+"@
+    
+    Set-Content -Path "src\$webProjectName\Dockerfile.web" -Value $webDockerfileContent
+    
+    # Add to solution using .esproj extension
+    dotnet sln add "src\$webProjectName\$webProjectName.esproj"
 }
 
 # Create tests directory (empty as in original)
 New-Item -ItemType Directory -Path "tests" -Force | Out-Null
+
+# Add tests folder to solution as a solution folder
+Write-Host "Adding tests folder to solution..." -ForegroundColor Yellow
+dotnet sln add tests --solution-folder tests
 
 # Create .github/workflows directory
 New-Item -ItemType Directory -Path ".github\workflows" -Force | Out-Null
