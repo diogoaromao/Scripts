@@ -227,7 +227,9 @@ PowerShell script that creates a complete .NET solution matching the [INAB proje
 .\Create-DotNetProject.ps1 -SolutionName "MyProject"
 
 # Download and run
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/Create-DotNetProject.ps1" -OutFile "Create-DotNetProject.ps1"; .\Create-DotNetProject.ps1
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/diogoaromao/Scripts/main/Create-DotNetProject.ps1" -OutFile "Create-DotNetProject.ps1"
+.\Create-DotNetProject.ps1
+Remove-Item Create-DotNetProject.ps1
 ```
 
 **Parameters:**

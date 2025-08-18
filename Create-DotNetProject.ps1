@@ -219,6 +219,22 @@ public static class CreateVideoGame
         }
     }
 }
+
+[ApiController]
+[Route("api/games")]
+public class CreateVideoGameController(ISender sender) : ControllerBase
+{
+    [HttpPost]
+    public async Task<ActionResult<CreateVideoGame.Response>> CreateVideoGame(CreateVideoGameRequest request)
+    {
+        var command = new CreateVideoGame.Command(request.Title, request.Genre, request.ReleaseYear);
+        var result = await sender.Send(command);
+
+        return result.Match(
+            videoGame => CreatedAtAction(nameof(CreateVideoGame), new { id = videoGame.Id }, videoGame),
+            errors => BadRequest(errors));
+    }
+}
 "@
 
 Set-Content -Path "$apiPath\Features\VideoGames\CreateVideoGame.cs" -Value $createVideoGameContent
@@ -1464,6 +1480,11 @@ $ideaGitignoreContent = @"
 # Default ignored files
 /shelf/
 /workspace.xml
+# Rider ignored files
+/.idea.$SolutionName.iml
+/contentModel.xml
+/modules.xml
+/projectSettingsUpdater.xml
 # Editor-based HTTP Client requests
 /httpRequests/
 # Datasource local storage ignored files

@@ -10,7 +10,8 @@
       "Bash(git push:*)",
       "Bash(\"D:\\personal\\Scripts\\scripts\\github\\generate-workflow.ps1\" -SolutionName \"INAB\")",
       "Bash(powershell.exe:*)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "WebSearch"
     ],
     "defaultMode": "acceptEdits"
   }
