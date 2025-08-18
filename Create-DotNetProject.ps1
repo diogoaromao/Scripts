@@ -171,6 +171,7 @@ using $SolutionName.Api.Contracts.VideoGames;
 using $SolutionName.Api.Data;
 using $SolutionName.Api.Entities;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace $SolutionName.Api.Features.VideoGames;
 
@@ -219,6 +220,23 @@ public static class CreateVideoGame
 
             return response;
         }
+    }
+}
+
+[ApiController]
+[Route("api/games")]
+public class CreateVideoGameController(ISender sender) : ControllerBase
+{
+    [HttpPost]
+    public async Task<IActionResult> CreateVideoGame([FromBody] CreateVideoGameRequest request)
+    {
+        var command = new CreateVideoGame.Command(request.Title, request.Genre, request.ReleaseYear);
+        
+        var result = await sender.Send(command);
+
+        return result.Match<IActionResult>(
+            response => Created(`$"/api/games/{response.Id}", response),
+            errors => BadRequest(errors));
     }
 }
 "@
