@@ -1169,7 +1169,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha,prefix=main-,enable={{is_default_branch}}
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push API Docker image
@@ -1207,7 +1207,7 @@ jobs:
       id: sha
       run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
 
-    - name: Extract web metadata
+    - name: Extract Web metadata
       id: web-meta
       uses: docker/metadata-action@v5
       with:
@@ -1215,7 +1215,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha,prefix=main-,enable={{is_default_branch}}
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Web Docker image
@@ -1229,245 +1229,273 @@ jobs:
 
   deploy-api-staging:
     needs: [changes, build-api]
-    if: `${{ needs.changes.outputs.api == 'true' && github.ref == 'refs/heads/main' }}
+    if: `${{ needs.changes.outputs.api == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     runs-on: ubuntu-latest
-    environment: staging
-
+    
     steps:
-    - name: Get short SHA
-      id: sha
-      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
-
-    - name: Authenticate with Portainer
-      id: auth
+    - name: Deploy API to Staging via Portainer API
       run: |
-        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+        # Get JWT token from Portainer
+        JWT_TOKEN=`$(curl -s -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/auth" \
           -H "Content-Type: application/json" \
-          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
-        jwt=`$(echo `$response | jq -r .jwt)
-        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
-
-    - name: Stop existing API staging container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging/stop" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Remove existing API staging container
-      run: |
-        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Deploy API to Portainer Staging
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-staging" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}' \
+          | jq -r '.jwt')
+        
+        if [ "`$JWT_TOKEN" = "null" ] || [ -z "`$JWT_TOKEN" ]; then
+          echo "Failed to authenticate with Portainer"
+          exit 1
+        fi
+        
+        IMAGE_TAG="main-`${{ needs.build-api.outputs.image-sha }}"
+        API_IMAGE_FULL="`${{ env.REGISTRY }}/`${{ env.API_IMAGE_NAME }}:`${IMAGE_TAG}"
+        
+        # Pull the API image to Portainer
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/images/create?fromImage=`${API_IMAGE_FULL}" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
+        
+        # Stop and remove existing API container if it exists
+        API_CONTAINER_ID=`$(curl -s -X GET \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/json?all=true" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
+          | jq -r '.[] | select(.Names[]? | test("/$($SolutionName.ToLower())-staging`$")) | .Id' 2>/dev/null || echo "")
+        
+        if [ ! -z "`$API_CONTAINER_ID" ] && [ "`$API_CONTAINER_ID" != "null" ]; then
+          echo "Stopping existing API container: `$API_CONTAINER_ID"
+          curl -X POST \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID/stop" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+          curl -X DELETE \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+        fi
+        
+        # Create new API container
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-staging" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-api:main-`${{ steps.sha.outputs.sha }}",
-            "ExposedPorts": {
-              "8080/tcp": {}
-            },
+            "Image": "'`${API_IMAGE_FULL}'",
             "Env": [
-              "ASPNETCORE_ENVIRONMENT=Staging"
+              "ASPNETCORE_ENVIRONMENT=Staging",
+              "ASPNETCORE_URLS=http://+:8080"
             ],
+            "ExposedPorts": {"8080/tcp": {}},
             "HostConfig": {
-              "PortBindings": {
-                "8080/tcp": [
-                  {
-                    "HostPort": "3001"
-                  }
-                ]
-              },
-              "RestartPolicy": {
-                "Name": "unless-stopped"
-              }
+              "PortBindings": {"8080/tcp": [{"HostPort": "3001"}]},
+              "RestartPolicy": {"Name": "unless-stopped"}
             }
-          }'
-
-    - name: Start API staging container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-staging/start" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+          }' \
+          | jq -r '.Id' > api_container_id.txt
+        
+        # Start the API container
+        API_CONTAINER_ID=`$(cat api_container_id.txt)
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID/start" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
 
   deploy-web-staging:
     needs: [changes, build-web]
-    if: `${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' }}
+    if: `${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     runs-on: ubuntu-latest
-    environment: staging
-
+    
     steps:
-    - name: Get short SHA
-      id: sha
-      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
-
-    - name: Authenticate with Portainer
-      id: auth
+    - name: Deploy Web to Staging via Portainer API
       run: |
-        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+        # Get JWT token from Portainer
+        JWT_TOKEN=`$(curl -s -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/auth" \
           -H "Content-Type: application/json" \
-          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
-        jwt=`$(echo `$response | jq -r .jwt)
-        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
-
-    - name: Stop existing web staging container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging/stop" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Remove existing web staging container
-      run: |
-        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Deploy Web to Portainer Staging
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web-staging" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}' \
+          | jq -r '.jwt')
+        
+        if [ "`$JWT_TOKEN" = "null" ] || [ -z "`$JWT_TOKEN" ]; then
+          echo "Failed to authenticate with Portainer"
+          exit 1
+        fi
+        
+        IMAGE_TAG="main-`${{ needs.build-web.outputs.image-sha }}"
+        WEB_IMAGE_FULL="`${{ env.REGISTRY }}/`${{ env.WEB_IMAGE_NAME }}:`${IMAGE_TAG}"
+        
+        # Pull the Web image to Portainer
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/images/create?fromImage=`${WEB_IMAGE_FULL}" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
+        
+        # Stop and remove existing Web container if it exists
+        WEB_CONTAINER_ID=`$(curl -s -X GET \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/json?all=true" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
+          | jq -r '.[] | select(.Names[]? | test("/$($SolutionName.ToLower())-web-staging`$")) | .Id' 2>/dev/null || echo "")
+        
+        if [ ! -z "`$WEB_CONTAINER_ID" ] && [ "`$WEB_CONTAINER_ID" != "null" ]; then
+          echo "Stopping existing Web container: `$WEB_CONTAINER_ID"
+          curl -X POST \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID/stop" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+          curl -X DELETE \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+        fi
+        
+        # Create new Web container
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web-staging" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-web:main-`${{ steps.sha.outputs.sha }}",
-            "ExposedPorts": {
-              "80/tcp": {}
-            },
+            "Image": "'`${WEB_IMAGE_FULL}'",
+            "ExposedPorts": {"80/tcp": {}},
             "HostConfig": {
-              "PortBindings": {
-                "80/tcp": [
-                  {
-                    "HostPort": "3002"
-                  }
-                ]
-              },
-              "RestartPolicy": {
-                "Name": "unless-stopped"
-              }
+              "PortBindings": {"80/tcp": [{"HostPort": "3002"}]},
+              "RestartPolicy": {"Name": "unless-stopped"}
             }
-          }'
-
-    - name: Start web staging container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web-staging/start" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+          }' \
+          | jq -r '.Id' > web_container_id.txt
+        
+        # Start the Web container
+        WEB_CONTAINER_ID=`$(cat web_container_id.txt)
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID/start" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
 
   deploy-api-production:
-    needs: [deploy-api-staging]
-    if: `${{ always() && needs.deploy-api-staging.result == 'success' }}
+    needs: [changes, build-api, deploy-api-staging]
+    if: `${{ needs.changes.outputs.api == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     environment: production
-
+    
     steps:
-    - name: Get short SHA
-      id: sha
-      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
-
-    - name: Authenticate with Portainer
-      id: auth
+    - name: Deploy API to Production via Portainer API
       run: |
-        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+        # Get JWT token from Portainer
+        JWT_TOKEN=`$(curl -s -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/auth" \
           -H "Content-Type: application/json" \
-          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
-        jwt=`$(echo `$response | jq -r .jwt)
-        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
-
-    - name: Stop existing API production container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())/stop" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Remove existing API production container
-      run: |
-        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Deploy API to Portainer Production
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}' \
+          | jq -r '.jwt')
+        
+        if [ "`$JWT_TOKEN" = "null" ] || [ -z "`$JWT_TOKEN" ]; then
+          echo "Failed to authenticate with Portainer"
+          exit 1
+        fi
+        
+        IMAGE_TAG="main-`${{ needs.build-api.outputs.image-sha }}"
+        API_IMAGE_FULL="`${{ env.REGISTRY }}/`${{ env.API_IMAGE_NAME }}:`${IMAGE_TAG}"
+        
+        # Pull the API image to Portainer
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/images/create?fromImage=`${API_IMAGE_FULL}" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
+        
+        # Stop and remove existing API container if it exists
+        API_CONTAINER_ID=`$(curl -s -X GET \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/json?all=true" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
+          | jq -r '.[] | select(.Names[]? | test("/$($SolutionName.ToLower())-production`$")) | .Id' 2>/dev/null || echo "")
+        
+        if [ ! -z "`$API_CONTAINER_ID" ] && [ "`$API_CONTAINER_ID" != "null" ]; then
+          echo "Stopping existing API container: `$API_CONTAINER_ID"
+          curl -X POST \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID/stop" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+          curl -X DELETE \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+        fi
+        
+        # Create new API container
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-production" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-api:main-`${{ steps.sha.outputs.sha }}",
-            "ExposedPorts": {
-              "8080/tcp": {}
-            },
+            "Image": "'`${API_IMAGE_FULL}'",
             "Env": [
-              "ASPNETCORE_ENVIRONMENT=Production"
+              "ASPNETCORE_ENVIRONMENT=Production",
+              "ASPNETCORE_URLS=http://+:8080"
             ],
+            "ExposedPorts": {"8080/tcp": {}},
             "HostConfig": {
-              "PortBindings": {
-                "8080/tcp": [
-                  {
-                    "HostPort": "3000"
-                  }
-                ]
-              },
-              "RestartPolicy": {
-                "Name": "unless-stopped"
-              }
+              "PortBindings": {"8080/tcp": [{"HostPort": "3000"}]},
+              "RestartPolicy": {"Name": "unless-stopped"}
             }
-          }'
-
-    - name: Start API production container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())/start" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+          }' \
+          | jq -r '.Id' > api_container_id.txt
+        
+        # Start the API container
+        API_CONTAINER_ID=`$(cat api_container_id.txt)
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$API_CONTAINER_ID/start" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
 
   deploy-web-production:
-    needs: [deploy-web-staging]
-    if: `${{ always() && needs.deploy-web-staging.result == 'success' }}
+    needs: [changes, build-web, deploy-web-staging]
+    if: `${{ needs.changes.outputs.web == 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push' }}
     runs-on: ubuntu-latest
     environment: production
-
+    
     steps:
-    - name: Get short SHA
-      id: sha
-      run: echo "sha=`$(echo `${{ github.sha }} | cut -c1-7)" >> `$GITHUB_OUTPUT
-
-    - name: Authenticate with Portainer
-      id: auth
+    - name: Deploy Web to Production via Portainer API
       run: |
-        response=`$(curl -s -X POST "`${{ secrets.PORTAINER_URL }}/api/auth" \
+        # Get JWT token from Portainer
+        JWT_TOKEN=`$(curl -s -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/auth" \
           -H "Content-Type: application/json" \
-          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}')
-        jwt=`$(echo `$response | jq -r .jwt)
-        echo "jwt=`$jwt" >> `$GITHUB_OUTPUT
-
-    - name: Stop existing web production container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web/stop" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Remove existing web production container
-      run: |
-        curl -X DELETE "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" || true
-
-    - name: Deploy Web to Portainer Production
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}" \
+          -d '{"username": "`${{ secrets.PORTAINER_USERNAME }}", "password": "`${{ secrets.PORTAINER_PASSWORD }}"}' \
+          | jq -r '.jwt')
+        
+        if [ "`$JWT_TOKEN" = "null" ] || [ -z "`$JWT_TOKEN" ]; then
+          echo "Failed to authenticate with Portainer"
+          exit 1
+        fi
+        
+        IMAGE_TAG="main-`${{ needs.build-web.outputs.image-sha }}"
+        WEB_IMAGE_FULL="`${{ env.REGISTRY }}/`${{ env.WEB_IMAGE_NAME }}:`${IMAGE_TAG}"
+        
+        # Pull the Web image to Portainer
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/images/create?fromImage=`${WEB_IMAGE_FULL}" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
+        
+        # Stop and remove existing Web container if it exists
+        WEB_CONTAINER_ID=`$(curl -s -X GET \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/json?all=true" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
+          | jq -r '.[] | select(.Names[]? | test("/$($SolutionName.ToLower())-web-production`$")) | .Id' 2>/dev/null || echo "")
+        
+        if [ ! -z "`$WEB_CONTAINER_ID" ] && [ "`$WEB_CONTAINER_ID" != "null" ]; then
+          echo "Stopping existing Web container: `$WEB_CONTAINER_ID"
+          curl -X POST \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID/stop" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+          curl -X DELETE \
+            "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID" \
+            -H "Authorization: Bearer `$JWT_TOKEN" || true
+        fi
+        
+        # Create new Web container
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/create?name=$($SolutionName.ToLower())-web-production" \
+          -H "Authorization: Bearer `$JWT_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{
-            "Image": "`${{ secrets.DOCKER_USERNAME }}/$($SolutionName.ToLower())-web:main-`${{ steps.sha.outputs.sha }}",
-            "ExposedPorts": {
-              "80/tcp": {}
-            },
+            "Image": "'`${WEB_IMAGE_FULL}'",
+            "ExposedPorts": {"80/tcp": {}},
             "HostConfig": {
-              "PortBindings": {
-                "80/tcp": [
-                  {
-                    "HostPort": "3003"
-                  }
-                ]
-              },
-              "RestartPolicy": {
-                "Name": "unless-stopped"
-              }
+              "PortBindings": {"80/tcp": [{"HostPort": "3003"}]},
+              "RestartPolicy": {"Name": "unless-stopped"}
             }
-          }'
-
-    - name: Start web production container
-      run: |
-        curl -X POST "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/$($SolutionName.ToLower())-web/start" \
-          -H "Authorization: Bearer `${{ steps.auth.outputs.jwt }}"
+          }' \
+          | jq -r '.Id' > web_container_id.txt
+        
+        # Start the Web container
+        WEB_CONTAINER_ID=`$(cat web_container_id.txt)
+        curl -X POST \
+          "`${{ secrets.PORTAINER_URL }}/api/endpoints/`${{ secrets.PORTAINER_ENDPOINT_ID }}/docker/containers/`$WEB_CONTAINER_ID/start" \
+          -H "Authorization: Bearer `$JWT_TOKEN"
 "@
 
 Set-Content -Path ".github\workflows\deploy.yml" -Value $deployWorkflowContent
@@ -1525,6 +1553,7 @@ Set-Content -Path ".idea\.idea.$SolutionName\.idea\vcs.xml" -Value $vcsXmlConten
 
 # Create .dockerignore file
 $dockerIgnoreContent = @"
+**/.classpath
 **/.dockerignore
 **/.env
 **/.git
@@ -1549,6 +1578,11 @@ $dockerIgnoreContent = @"
 **/values.dev.yaml
 LICENSE
 README.md
+!**/.gitignore
+!.git/HEAD
+!.git/config
+!.git/packed-refs
+!.git/refs/heads/**
 "@
 Set-Content -Path ".dockerignore" -Value $dockerIgnoreContent
 
